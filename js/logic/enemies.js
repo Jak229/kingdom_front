@@ -19,7 +19,7 @@ import {
 import {hitSquad, startConvoy} from './support.js';
 import {saveGame} from '../save.js';
 import {gameOver} from '../ui/end.js';
-import {SP} from '../sprites/core.js';
+import {SP} from '../sprites.js';
 
 /* ---------- enemies ---------- */
 export function startNight() {

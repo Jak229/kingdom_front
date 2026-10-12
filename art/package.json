@@ -1,0 +1,8 @@
+{
+  "name": "kingdom-front-art",
+  "private": true,
+  "type": "module",
+  "description": "Builds assets/sprites.png from the sprite source code in this folder",
+  "scripts": {"build": "node build.mjs"},
+  "devDependencies": {"playwright": "1.64.0"}
+}

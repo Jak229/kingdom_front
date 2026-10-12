@@ -2,7 +2,7 @@
 import {DEFS, GY} from '../config.js';
 import {rnd} from '../util.js';
 import {S} from '../state.js';
-import {SP, SPR} from '../sprites/core.js';
+import {SP, SPR} from '../sprites.js';
 
 /* ---------- rendering ---------- */
 /* sprite-pixel helpers: column/row of a sprite to world coordinates */

@@ -6,7 +6,7 @@ import {S, input} from '../state.js';
 import {dropCoin, fire, outerWall, puff, rocketUp, sfx, toast} from './rules.js';
 import {nearestEnemy} from './people.js';
 import {hitE, jammed} from './enemies.js';
-import {SP} from '../sprites/core.js';
+import {SP} from '../sprites.js';
 
 /* ---------- ATGM, spec ops, finance, convoy ---------- */
 export function assaultTarget() {

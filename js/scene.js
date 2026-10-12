@@ -39,8 +39,7 @@ import {
   spx,
   spy
 } from './render/helpers.js';
-import {SP, SPR, SPT} from './sprites/core.js';
-import {makeSprites} from './sprites/index.js';
+import {ATLAS, SP, SPR, SPT, fname, initSprites, loadSprites} from './sprites.js';
 import {AU} from './audio.js';
 import {LAYERS, SEASON_TINT, makeLayers} from './render/layers.js';
 import {$} from './ui/dom.js';
@@ -51,6 +50,9 @@ import {toggleSound} from './ui/settings.js';
 export class Main extends Phaser.Scene {
   constructor() {
     super('main');
+  }
+  preload() {
+    loadSprites(this);
   }
   create() {
     const webgl = this.renderer.type === Phaser.WEBGL;
@@ -87,7 +89,7 @@ export class Main extends Phaser.Scene {
       const h = 2 + ((x * 7) % 5);
       gr.fillRect(x, GY - h, 1, h);
     }
-    makeSprites(this);
+    initSprites(this);
     {
       const r = rng(7);
       for (let x = 0; x < WORLD; x += 20 + r() * 60) {
@@ -230,13 +232,14 @@ export class Main extends Phaser.Scene {
   }
   spr(pool, key, frame, x, y, flip, tint, alpha, fill) {
     if (this.winter && SPR[key].snow) key += '_w';
+    const fr = fname(key, frame);
     let im = pool.list[pool.n++];
     if (!im) {
-      im = new Phaser.GameObjects.Image(this, 0, 0, key, frame);
+      im = new Phaser.GameObjects.Image(this, 0, 0, ATLAS, fr);
       pool.c.add(im);
       pool.list.push(im);
     }
-    if (im.texture.key !== key || im.frame.name !== frame) im.setTexture(key, frame);
+    if (im.frame.name !== fr) im.setFrame(fr);
     const s = SPR[key];
     im.setOrigin(s.ox, s.oy)
       .setScale(SPT)
@@ -711,8 +714,8 @@ export class Main extends Phaser.Scene {
           this,
           Math.round(x * K) / K,
           GY + (o.y || 0),
-          o.seas ? key + '_s1' : key,
-          f
+          ATLAS,
+          fname(o.seas ? key + '_s1' : key, f)
         )
           .setOrigin(s.ox, s.oy)
           .setScale(SPT)
@@ -731,7 +734,8 @@ export class Main extends Phaser.Scene {
     for (const ct of [this.decoC, this.frontC])
       for (const im of ct.list) {
         const k = im.seas ? im.base + '_s' + si : this.winter && SPR[im.base].snow ? im.base + '_w' : im.base;
-        if (im.texture.key !== k) im.setTexture(k, im.fr);
+        const fr = fname(k, im.fr);
+        if (im.frame.name !== fr) im.setFrame(fr);
       }
     const g = this.seasonG;
     g.clear();

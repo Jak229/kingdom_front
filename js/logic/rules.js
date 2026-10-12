@@ -5,7 +5,7 @@ import {rnd} from '../util.js';
 import {S, input} from '../state.js';
 import {bombBoom, dropCargo, hitE} from './enemies.js';
 import {assaultTarget, swapVehicle, unlockWild} from './support.js';
-import {SP} from '../sprites/core.js';
+import {SP} from '../sprites.js';
 
 /* ---------- rules ---------- */
 export function reqFor(sp, lvl) {

@@ -1,5 +1,5 @@
-import {K} from '../config.js';
-
+/* Sprite source code. The game does not run this: art/build.mjs paints every sprite here in a browser,
+   then packs them into assets/sprites.png + assets/sprites.json, which the game loads like any image. */
 /* ---------- pixel sprites ----------
    Art is laid out on a coarse grid (one art pixel = SP world units) and rasterised at R texels per art pixel:
    curves and lines resolve at half-pixel steps and fine details (faces, rivets, seams) go in at texel level.
@@ -70,9 +70,8 @@ export const PAL = {
 };
 export const FAC = {m: '#2f6e6a', d: '#1d4744', l: '#4f938c'}; // neutral garrison «Перевал»: teal field, white band, gold diamond
 export const SPR = {}; // key -> {w,h,frames,ox,oy}
-export const SP = Math.max(1, Math.round(2 * K)) / K; // world units per art pixel: every art pixel covers a whole number of screen pixels
-export const R = 2,
-  SPT = SP / R; // texels per art pixel, world units per texel
+export const SHEETS = []; // finished strips: {key, fw, fh, frames, rgba}
+export const R = 2; // texels per art pixel
 const SNOWC = [
     [244, 247, 249],
     [226, 234, 240],
@@ -105,7 +104,7 @@ export function hash2(x, y) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-export function pxSprite(scene, key, w, h, frames, draw, opt) {
+export function pxSprite(key, w, h, frames, draw, opt) {
   opt = opt || {};
   const fw = w * R + 2,
     fh = h * R + 2,
@@ -333,33 +332,22 @@ export function pxSprite(scene, key, w, h, frames, draw, opt) {
       ...opt,
       snow: opt.winter || SNOWY.test(key)
     });
-  const mk = a => {
-    const k = document.createElement('canvas');
-    k.width = W2;
-    k.height = H2;
-    k.getContext('2d').putImageData(new ImageData(a, W2, H2), 0, 0);
-    return k;
-  };
   SPR[key] = {w, h, frames, ox: (R * Math.floor(w / 2) + 1) / fw, oy: (R * h + 1) / fh};
-  const reg = (k, src) => {
-    const tex = scene.textures.addCanvas(k, src);
-    for (let f = 0; f < frames; f++) tex.add(f, 0, f * fw, 0, fw, fh);
-    tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
-  };
-  if (opt.winter) reg(key, mk(out[1]));
+  const reg = (k, rgba) => SHEETS.push({key: k, fw, fh, frames, rgba});
+  if (opt.winter) reg(key, out[1]);
   else {
-    reg(key, mk(out[0]));
+    reg(key, out[0]);
     if (out[1]) {
-      reg(key + '_w', mk(out[1]));
+      reg(key + '_w', out[1]);
       SPR[key + '_w'] = SPR[key];
       SPR[key].snow = true;
     }
   }
 }
 /* seasonal sprites: one texture per season (key_s0..key_s3), winter gets snow caps */
-export function pxSeason(scene, key, w, h, frames, draw, opt) {
+export function pxSeason(key, w, h, frames, draw, opt) {
   for (let si = 0; si < 4; si++)
-    pxSprite(scene, key + '_s' + si, w, h, frames, (P, f) => draw(P, f, si), {...opt, winter: si === 3});
+    pxSprite(key + '_s' + si, w, h, frames, (P, f) => draw(P, f, si), {...opt, winter: si === 3});
   SPR[key] = SPR[key + '_s1'];
 }
 function spritePost(d, W2, H2, opt) {

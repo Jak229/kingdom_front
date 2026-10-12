@@ -1,5 +1,5 @@
 /* Scenery: trees and grass per season, rocks, fences, houses, landmarks. */
-import {rng} from '../util.js';
+import {rng} from '../js/util.js';
 import {PAL,R,tone} from './core.js';
 
 export function pine(P,f){const C=PAL,D='#24331e',M='#33472a',Lc='#4a6236',H='#5f7c42';
