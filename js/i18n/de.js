@@ -67,6 +67,8 @@ export default {
     ' Front {0} gehalten. Mit dem Kommandanten ziehen an Front {1}: Soldaten {2}, Pioniere {3}{4}. Der Feind ist dort stärker.',
   e_dog: ', der Diensthund',
   e_next: 'Nächste Front',
+  e_bonus: 'Werbung: +{0} Marken',
+  e_bonusGot: 'Werbebonus: +{0} Marken.',
   hudFront: 'FRONT {0}',
   hudDay: 'TAG {0}',
   tok: '{0} Marken',

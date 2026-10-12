@@ -41,6 +41,7 @@ import {
 } from './render/helpers.js';
 import {ATLAS, SP, SPR, SPT, fname, initSprites, loadSprites} from './sprites.js';
 import {AU} from './audio.js';
+import {CG} from './crazygames.js';
 import {LAYERS, SEASON_TINT, makeLayers} from './render/layers.js';
 import {$} from './ui/dom.js';
 import {TOUCH, buzz, touch} from './ui/touch.js';
@@ -227,8 +228,11 @@ export class Main extends Phaser.Scene {
       step,
       scene: this,
       input,
-      AU
+      AU,
+      CG
     };
+    CG.onHush(h => AU.setHush(h));
+    CG.loaded();
   }
   spr(pool, key, frame, x, y, flip, tint, alpha, fill) {
     if (this.winter && SPR[key].snow) key += '_w';
@@ -344,6 +348,7 @@ export class Main extends Phaser.Scene {
     input.fast = k.SHIFT.isDown || touch.fast || touch.dash;
     if (Phaser.Input.Keyboard.JustDown(k.M)) toggleSound();
     step(dt);
+    CG.setPlaying(S.running && !S.paused && !S.over && !S.won && $('menu').hidden);
     syncTut();
     this.events_(dt);
     this.makeSigns();
