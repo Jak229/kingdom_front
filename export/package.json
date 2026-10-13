@@ -1,0 +1,8 @@
+{
+  "name": "kingdom-front-export",
+  "private": true,
+  "type": "module",
+  "description": "Packs the game into dist/ and a zip for game portals: one bundled script, no network requests",
+  "scripts": {"build": "node build.mjs"},
+  "devDependencies": {"esbuild": "0.28.2", "fflate": "0.8.3"}
+}
