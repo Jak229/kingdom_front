@@ -66,8 +66,6 @@ export default {
     ' Front {0} held. Going with the commander to front {1}: soldiers {2}, sappers {3}{4}. The enemy is stronger there.',
   e_dog: ', the service dog',
   e_next: 'Next front',
-  e_bonus: 'Watch ad: +{0} tokens',
-  e_bonusGot: 'Ad bonus: +{0} tokens.',
   hudFront: 'FRONT {0}',
   hudDay: 'DAY {0}',
   tok: '{0} tok.',

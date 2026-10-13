@@ -7,9 +7,8 @@ import {clamp, roman} from '../util.js';
 import {S, newState, setS} from '../state.js';
 import {toast} from '../logic/rules.js';
 import {clearSave, loadGame, readSave} from '../save.js';
-import {fillEnd, initEnd} from './end.js';
+import {fillEnd} from './end.js';
 import {AU} from '../audio.js';
-import {CG} from '../crazygames.js';
 import {$} from './dom.js';
 import {layoutCorner} from './touch.js';
 import {syncToggles} from './settings.js';
@@ -160,20 +159,15 @@ export function initMenu() {
     if (cur) begin(cur);
     else begin();
   });
-  // between operations is the natural break for a CrazyGames midgame ad (no-op elsewhere)
-  $('restart').addEventListener('click', async () => {
-    await CG.midgame();
+  $('restart').addEventListener('click', () => {
     clearSave();
     setS(newState());
     begin();
   });
-  $('nextFront').addEventListener('click', async () => {
+  $('nextFront').addEventListener('click', () => {
     const nx = S.nextFront;
-    if (!nx) return;
-    await CG.midgame();
-    begin(null, nx);
+    if (nx) begin(null, nx);
   });
-  initEnd();
   $('toMenu').addEventListener('click', () => {
     $('end').hidden = true;
     openMenu();
