@@ -1,6 +1,6 @@
 /* Español (es): every visible text of the game. {0},{1}… are arguments. */
 export default {
-  docTitle: 'Kingdom: Línea del frente',
+  docTitle: 'Línea del frente',
   titleB: 'Línea del frente',
   stamp: 'Guarnición «Pereval» · Orden n.º 1',
   tag: 'De día construye y arma a tu escuadra; de noche resiste el ataque de los robots de combate.',
@@ -49,7 +49,7 @@ export default {
   fsOff: 'Salir de pantalla completa',
   s_vibro: 'Vibración',
   a_text1:
-    'Un pequeño juego de navegador inspirado en Kingdom: Two Crowns y trasladado a nuestros días: una base avanzada en lugar de un reino, fichas de suministro en lugar de monedas y un blindado en lugar de un caballo.',
+    'Un pequeño juego de estrategia de desplazamiento lateral sobre el comandante de una base avanzada: de día reúnes fichas de suministro, contratas soldados y construyes defensas; de noche resistes en la línea contra robots de combate.',
   a_text2:
     'Todos los gráficos y sonidos se generan con código en el propio navegador. La guarnición «Pereval», los robots y los portales son ficticios; los vehículos están dibujados a partir de modelos reales.',
   a_ver: 'Versión {0}',

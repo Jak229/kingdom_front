@@ -41,6 +41,14 @@ export function layoutCorner() {
     c.style.top = Math.round(r.top + 58 * k) + 'px';
   }
 }
+// inside a game portal's iframe the portal owns full screen, so the game never switches to it by itself there
+const EMBED = (() => {
+  try {
+    return window.top !== window.self;
+  } catch (_) {
+    return true;
+  }
+})();
 // full screen (Android and desktop browsers; not available on iPhone) with the landscape lock where the browser allows it
 const fsOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
 const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
@@ -158,8 +166,16 @@ export function initTouch() {
       el.addEventListener('pointerup', off);
       el.addEventListener('pointercancel', off);
     }
-    T.addEventListener('contextmenu', e => e.preventDefault());
   })();
+  // no browser menu on right click or long press anywhere in the game
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  // in an iframe keys only reach the game while it has focus: take it back on every click or tap
+  window.addEventListener('pointerdown', () => window.focus(), true);
+  // focus moved away (another tab, the portal page around the iframe): let go of every held button
+  window.addEventListener('blur', () => {
+    for (const k in touch) touch[k] = false;
+    document.querySelectorAll('#touch .on').forEach(el => el.classList.remove('on'));
+  });
   // a coarse pointer, or the first finger on the screen, switches the touch layout on
   window.addEventListener(
     'pointerdown',
@@ -184,7 +200,7 @@ export function initTouch() {
   document.addEventListener('webkitfullscreenchange', syncFs);
   for (const id of ['start', 'cont', 'resume'])
     $(id).addEventListener('click', () => {
-      if (TOUCH) goFull();
+      if (TOUCH && !EMBED) goFull();
     });
   window.addEventListener('keydown', e => {
     if (e.code === 'KeyF' && !e.repeat && !e.ctrlKey && !e.metaKey) {

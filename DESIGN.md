@@ -169,5 +169,6 @@
 
 ## Экспорт для порталов (v20)
 - Игра не ходит в сеть: Phaser 3.80.1 в `vendor/`, шрифты Pixelify Sans и Rubik (латиница, кириллица) в `fonts/` через `css/fonts.css`. Китайский текст по-прежнему рисуется системным шрифтом.
-- `export/build.mjs` (esbuild + fflate) собирает `js/main.js` в один IIFE-скрипт `js/game.js`, копирует css, fonts, assets, vendor и пишет `export/kingdom-front-v<VERSION>.zip` с index.html в корне. Сборка падает, если index.html ещё ссылается на внешний адрес.
+- `export/build.mjs` (esbuild + fflate) собирает `js/main.js` в один IIFE-скрипт `js/game.js`, копирует css, fonts, assets, vendor и пишет `export/front-line-v<VERSION>.zip` с index.html в корне. Сборка падает, если index.html ещё ссылается на внешний адрес.
 - Интеграция CrazyGames SDK отложена: код в коммите f621f60 (закрытый PR #2).
+- Требования порталов: название «Линия фронта» без Kingdom (чужая марка); в iframe (window.top !== self) нет автоперехода в полный экран; window.focus() по pointerdown; blur отпускает экранные кнопки (клавиши Phaser сбрасывает сам); contextmenu заблокирован везде; viewport без масштабирования, overscroll-behavior:none.

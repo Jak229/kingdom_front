@@ -1,6 +1,6 @@
 /* Deutsch (de): every visible text of the game. {0},{1}… are arguments. */
 export default {
-  docTitle: 'Kingdom: Frontlinie',
+  docTitle: 'Frontlinie',
   titleB: 'Frontlinie',
   stamp: 'Garnison „Perewal“ · Befehl Nr. 1',
   tag: 'Am Tag baust und bewaffnest du deinen Trupp, in der Nacht hältst du die Stellung gegen Kampfroboter.',
@@ -49,7 +49,7 @@ export default {
   fsOff: 'Vollbild beenden',
   s_vibro: 'Vibration',
   a_text1:
-    'Ein kleines Browserspiel nach dem Vorbild von Kingdom: Two Crowns, in die Gegenwart versetzt: ein vorgeschobener Stützpunkt statt eines Königreichs, Versorgungsmarken statt Münzen, ein Panzerwagen statt eines Pferdes.',
+    'Ein kleines Side-Scrolling-Strategiespiel über den Kommandanten eines vorgeschobenen Stützpunkts: Tagsüber sammelst du Versorgungsmarken, wirbst Soldaten an und baust Befestigungen, nachts hältst du die Linie gegen Kampfroboter.',
   a_text2:
     'Grafik und Ton werden komplett per Code direkt im Browser erzeugt. Die Garnison „Perewal“, die Roboter und die Portale sind erfunden, die Fahrzeuge sind realen Vorbildern nachgezeichnet.',
   a_ver: 'Version {0}',

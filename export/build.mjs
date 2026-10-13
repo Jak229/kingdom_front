@@ -1,5 +1,5 @@
 /* Builds the portal version of the game: export/dist/ (open index.html from any static host)
-   and export/kingdom-front-v<VERSION>.zip with index.html at the root of the archive.
+   and export/front-line-v<VERSION>.zip with index.html at the root of the archive.
    The ES modules become one minified classic script, so the game also runs inside portal iframes
    and needs no network: Phaser, fonts and sprites are all local files. */
 import {build} from 'esbuild';
@@ -47,7 +47,7 @@ const files = {};
     else files[path.relative(dist, p).split(path.sep).join('/')] = fs.readFileSync(p);
   }
 })(dist);
-const zipPath = path.join(here, `kingdom-front-v${VERSION}.zip`);
+const zipPath = path.join(here, `front-line-v${VERSION}.zip`);
 fs.writeFileSync(zipPath, zipSync(files, {level: 9}));
 const kb = n => (n / 1024).toFixed(0) + ' KB';
 console.log(`dist/: ${Object.keys(files).length} files, ${kb(Object.values(files).reduce((a, b) => a + b.length, 0))}`);
