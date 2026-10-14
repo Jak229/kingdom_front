@@ -52,6 +52,8 @@ css/fonts.css           подключение локальных шрифтов
 fonts/                  Pixelify Sans и Rubik (woff2, лицензия SIL OFL)
 vendor/phaser.min.js    движок Phaser 3.80.1 (лицензия MIT)
 export/                 сборка zip для игровых порталов
+art/cover.html          обложка для порталов из спрайтов игры (night, dusk, boss); art/cover.mjs рендерит все размеры в art/covers/
+fonts/patch_pixelify.py добавляет в Pixelify Sans недостающие кириллические О, П, І
 js/main.js              точка входа: язык, тип управления, запуск Phaser
 js/config.js            размеры мира, сезоны, таблицы построек, машин, лавок
 js/state.js             состояние игры S, ввод, новая партия
