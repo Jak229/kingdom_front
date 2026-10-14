@@ -6,6 +6,7 @@ import {S} from '../state.js';
 import {$} from './dom.js';
 import {layoutTut} from './tutorial.js';
 import {inGame, openMenu} from './menu.js';
+import {CG} from '../crazygames.js';
 
 /* touch screens: a drive pad you can slide across, throttle (or double-tap an arrow), hold-to-pay, compact corner buttons */
 export const touch = {left: false, right: false, pay: false, fast: false, dash: false};
@@ -42,6 +43,7 @@ export function layoutCorner() {
   }
 }
 // inside a game portal's iframe the portal owns full screen, so the game never switches to it by itself there
+// (CrazyGames has its own full screen button, so ours is hidden there altogether)
 const EMBED = (() => {
   try {
     return window.top !== window.self;
@@ -191,7 +193,7 @@ export function initTouch() {
         layoutTut();
       }, ms);
   });
-  $('fsbtn').hidden = !fsOK;
+  $('fsbtn').hidden = !fsOK || CG.active;
   $('fsbtn').addEventListener('click', e => {
     e.currentTarget.blur();
     fsOn() ? leaveFull() : goFull();
@@ -203,7 +205,7 @@ export function initTouch() {
       if (TOUCH && !EMBED) goFull();
     });
   window.addEventListener('keydown', e => {
-    if (e.code === 'KeyF' && !e.repeat && !e.ctrlKey && !e.metaKey) {
+    if (e.code === 'KeyF' && !e.repeat && !e.ctrlKey && !e.metaKey && !CG.active) {
       fsOn() ? leaveFull() : goFull();
     }
   });

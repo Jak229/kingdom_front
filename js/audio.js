@@ -65,6 +65,7 @@ export const AU = {
   ctx: null,
   master: null,
   muted: false,
+  hush: false, // silenced by the platform (an ad, or CrazyGames' mute setting)
   music: true,
   musicVol: 0.7,
   sfxVol: 0.8,
@@ -88,7 +89,7 @@ export const AU = {
     comp.connect(c.destination);
     this.master = c.createGain();
     this.master.gain.value = 0;
-    this.master.gain.setTargetAtTime(this.muted ? 0 : 0.8, c.currentTime + 0.2, 1.2);
+    this.master.gain.setTargetAtTime(this.level(), c.currentTime + 0.2, 1.2);
     this.master.connect(comp);
     this.sfxLP = c.createBiquadFilter();
     this.sfxLP.type = 'lowpass';
@@ -146,9 +147,16 @@ export const AU = {
     this.jingled = false;
     this.trackT = 0;
   },
+  level() {
+    return this.muted || this.hush ? 0 : 0.8;
+  },
   setMuted(m) {
     this.muted = m;
-    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.8, this.ctx.currentTime, 0.05);
+    if (this.master) this.master.gain.setTargetAtTime(this.level(), this.ctx.currentTime, 0.05);
+  },
+  setHush(h) {
+    this.hush = h;
+    if (this.master) this.master.gain.setTargetAtTime(this.level(), this.ctx.currentTime, 0.05);
   },
   setMusic(on, vol) {
     this.music = on;

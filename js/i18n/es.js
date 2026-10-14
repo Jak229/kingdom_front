@@ -51,7 +51,7 @@ export default {
   a_text1:
     'Un pequeño juego de estrategia de desplazamiento lateral sobre el comandante de una base avanzada: de día reúnes fichas de suministro, contratas soldados y construyes defensas; de noche resistes en la línea contra robots de combate.',
   a_text2:
-    'Todos los gráficos y sonidos se generan con código en el propio navegador. La guarnición «Pereval», los robots y los portales son ficticios; los vehículos están dibujados a partir de modelos reales.',
+    'El progreso se guarda automáticamente en cada amanecer. La guarnición «Pereval», los robots y los portales son ficticios.',
   a_ver: 'Versión {0}',
   e_stampWin: 'Informe · Misión cumplida',
   e_stampLose: 'Informe · Misión fallida',
@@ -67,6 +67,8 @@ export default {
     ' Frente {0} asegurado. Con el comandante viajan al frente {1}: soldados {2}, zapadores {3}{4}. Allí el enemigo es más fuerte.',
   e_dog: ', el perro militar',
   e_next: 'Siguiente frente',
+  e_bonus: 'Ver anuncio: +{0} fichas',
+  e_bonusGot: 'Bonus por anuncio: +{0} fichas.',
   hudFront: 'FRENTE {0}',
   hudDay: 'DÍA {0}',
   tok: '{0} fichas',

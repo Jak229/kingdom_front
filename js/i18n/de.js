@@ -51,7 +51,7 @@ export default {
   a_text1:
     'Ein kleines Side-Scrolling-Strategiespiel über den Kommandanten eines vorgeschobenen Stützpunkts: Tagsüber sammelst du Versorgungsmarken, wirbst Soldaten an und baust Befestigungen, nachts hältst du die Linie gegen Kampfroboter.',
   a_text2:
-    'Grafik und Ton werden komplett per Code direkt im Browser erzeugt. Die Garnison „Perewal“, die Roboter und die Portale sind erfunden, die Fahrzeuge sind realen Vorbildern nachgezeichnet.',
+    'Der Fortschritt wird bei jedem Morgengrauen automatisch gespeichert. Die Garnison „Perewal“, die Roboter und die Portale sind frei erfunden.',
   a_ver: 'Version {0}',
   e_stampWin: 'Meldung · Auftrag erfüllt',
   e_stampLose: 'Meldung · Auftrag gescheitert',
@@ -67,6 +67,8 @@ export default {
     ' Front {0} gehalten. Mit dem Kommandanten ziehen an Front {1}: Soldaten {2}, Pioniere {3}{4}. Der Feind ist dort stärker.',
   e_dog: ', der Diensthund',
   e_next: 'Nächste Front',
+  e_bonus: 'Werbung: +{0} Marken',
+  e_bonusGot: 'Werbebonus: +{0} Marken.',
   hudFront: 'FRONT {0}',
   hudDay: 'TAG {0}',
   tok: '{0} Marken',
