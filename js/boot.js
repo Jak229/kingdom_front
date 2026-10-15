@@ -5,11 +5,13 @@ import {initTouch, layoutCorner, setTouchMode} from './ui/touch.js';
 import {initTutorialPanel} from './ui/tutorial.js';
 import {initSettings} from './ui/settings.js';
 import {applyLang, initMenu, syncCorner} from './ui/menu.js';
+import {initAdButton} from './ui/adbutton.js';
 
 initTouch();
 initTutorialPanel();
 initSettings();
 initMenu();
+initAdButton();
 applyLang();
 setTouchMode(matchMedia('(pointer:coarse)').matches);
 syncCorner();

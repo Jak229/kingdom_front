@@ -69,9 +69,12 @@ export const CG = {
       sdk.game.addSettingsChangeListener(st => hushFn(!!st.muteAudio || adBusy));
     }
   },
+  // why the last ad did not play: 'adblock', 'cooldown' or 'none' (no ad to show, e.g. unfilled in this region)
+  lastError: '',
   // shows an ad; resolves true when it played to the end
   ad(type) {
     if (!sdk || adBusy) return Promise.resolve(false);
+    this.lastError = '';
     return new Promise(done => {
       const muted = () => !!(sdk.game.settings && sdk.game.settings.muteAudio);
       const end = ok => {
@@ -90,9 +93,16 @@ export const CG = {
             hushFn(true);
           },
           adFinished: () => end(true),
-          adError: () => end(false)
+          adError: err => {
+            const c = String((err && (err.code || err.message)) || err || '').toLowerCase();
+            console.warn('[CrazyGames] ' + type + ' ad error:', err);
+            this.lastError = c.includes('block') ? 'adblock' : c.includes('cooldown') ? 'cooldown' : 'none';
+            end(false);
+          }
         });
       } catch (e) {
+        console.warn('[CrazyGames] requestAd failed:', e);
+        this.lastError = 'none';
         end(false);
       }
     });

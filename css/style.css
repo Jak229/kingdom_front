@@ -16,10 +16,13 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidde
 #corner button{font-family:var(--display);font-size:13px;background:rgba(10,12,16,.6);color:var(--fg);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
 #mbtn::before{content:'\2630  '}
 #fsbtn::before{content:'\26F6'}
+#adbtn{border-color:var(--accent)!important;color:var(--accent)!important}
+#adbtn::before{content:'\25B6  '}
 html.touch #corner{top:8px;left:8px;right:auto;bottom:auto;flex-direction:column;gap:10px}
 html.touch #corner button{width:44px;height:44px;padding:0;border-radius:50%;font-size:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,16,.55);border:2px solid rgba(255,255,240,.3)}
 html.touch #mbtn::before,html.touch #fsbtn::before{content:'\2630';font-size:20px;line-height:1;font-family:var(--body)}
 html.touch #fsbtn::before{content:'\26F6'}
+html.touch #adbtn::before{content:'\25B6' attr(data-s);font-size:12px;line-height:1;font-family:var(--display);white-space:nowrap}
 html.touch #fsbtn.on{background:rgba(217,180,74,.35)}
 html.touch #corner #snd{display:none}
 html.touch .keys{display:none}

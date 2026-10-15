@@ -6,6 +6,7 @@ import {nextFrontState} from '../logic/step.js';
 import {clearSave, saveGame} from '../save.js';
 import {AU} from '../audio.js';
 import {CG} from '../crazygames.js';
+import {adFailText} from './adbutton.js';
 import {PURSE} from '../config.js';
 import {syncCorner} from './menu.js';
 
@@ -68,7 +69,13 @@ export function initEnd() {
     b.disabled = true;
     const ok = await CG.rewarded();
     b.disabled = false;
-    if (!ok || S.bonusGot || !S.nextFront) return;
+    if (!ok) {
+      // say why instead of silently doing nothing, then offer the button again
+      b.textContent = adFailText();
+      setTimeout(fillEnd, 3500);
+      return;
+    }
+    if (S.bonusGot || !S.nextFront) return;
     S.bonusGot = true;
     S.nextFront.coins = Math.min(PURSE, S.nextFront.coins + BONUS);
     saveGame(S.nextFront);
