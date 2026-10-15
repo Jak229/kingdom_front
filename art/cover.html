@@ -1,0 +1,241 @@
+<!doctype html>
+<!-- Store cover for game portals, composed from the game's own sprite atlas.
+     Open over a static server: art/cover.html?c=night&w=1920&h=1080&lang=ru (c: night | dusk | boss).
+     art/cover.mjs renders every size to PNG. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../css/fonts.css">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const q = new URLSearchParams(location.search),
+  W = +q.get('w') || 1920,
+  H = +q.get('h') || 1080,
+  CON = q.get('c') || 'night',
+  LANG = q.get('lang') || 'ru',
+  LOGO = q.get('logo') !== '0';
+const TXT = {
+  ru: {title: 'ЛИНИЯ ФРОНТА', sub: 'Удержи линию до рассвета'},
+  en: {title: 'FRONT LINE', sub: 'Hold the line until dawn'}
+}[LANG];
+const cv = document.getElementById('c'),
+  g = cv.getContext('2d');
+cv.width = W;
+cv.height = H;
+g.imageSmoothingEnabled = false;
+const portrait = H > W,
+  // one sprite texel is 2 atlas pixels; S is screen pixels per atlas pixel
+  S = Math.max(2, Math.round(portrait ? (W / 800) * 3.2 : (Math.min(W, (H * 16) / 9) / 1920) * 4)),
+  GY = Math.round(H * (portrait ? 0.88 : 0.88));
+let seed = 7;
+const rnd = (a, b) => {
+  seed = (seed * 16807) % 2147483647;
+  return a + ((seed - 1) / 2147483646) * (b - a);
+};
+
+Promise.all([
+  fetch('../assets/sprites.json').then(r => r.json()),
+  new Promise(ok => {
+    const i = new Image();
+    i.onload = () => ok(i);
+    i.src = '../assets/sprites.png';
+  }),
+  document.fonts.ready.then(() => Promise.all([...document.fonts].map(f => f.load().catch(() => {}))))
+]).then(([atlas, img]) => {
+  // draw a sprite standing on the ground: x is its centre, k scales it on top of S
+  function spr(key, fr, x, y, k = 1, flip = false) {
+    const f = atlas.frames[key + ':' + fr].frame,
+      m = atlas.spr[key] || {ox: 0.5, oy: 1},
+      s = S * k,
+      w = f.w * s,
+      h = f.h * s;
+    g.save();
+    g.translate(Math.round(x), Math.round(y));
+    if (flip) g.scale(-1, 1);
+    g.drawImage(img, f.x, f.y, f.w, f.h, Math.round(-w * m.ox), Math.round(-h * m.oy), Math.round(w), Math.round(h));
+    g.restore();
+  }
+  const sky = stops => {
+    const gr = g.createLinearGradient(0, 0, 0, GY);
+    stops.forEach(([p, c]) => gr.addColorStop(p, c));
+    g.fillStyle = gr;
+    g.fillRect(0, 0, W, H);
+  };
+  function ridge(y, amp, col, step) {
+    g.fillStyle = col;
+    g.beginPath();
+    g.moveTo(0, H);
+    for (let x = 0; x <= W + step; x += step) g.lineTo(x, y - Math.abs(Math.sin(x * 0.0021 + y) * amp) - rnd(0, amp * 0.3));
+    g.lineTo(W, H);
+    g.fill();
+  }
+  function ruins(y, col) {
+    g.fillStyle = col;
+    for (let x = rnd(-40, 0); x < W; x += rnd(60, 160) * (S / 5)) {
+      const w = rnd(50, 130) * (S / 5),
+        h = rnd(80, 260) * (S / 5);
+      g.fillRect(x, y - h, w, h + 4);
+      if (rnd(0, 1) < 0.4) g.fillRect(x + w * 0.2, y - h - 20 * (S / 5), w * 0.15, 22 * (S / 5));
+    }
+  }
+  function ground(top, grass) {
+    g.fillStyle = top;
+    g.fillRect(0, GY, W, H - GY);
+    g.fillStyle = grass;
+    g.fillRect(0, GY - S, W, S * 2);
+    for (let x = 0; x < W; x += S * 3) if (rnd(0, 1) < 0.5) g.fillRect(x, GY - S * rnd(2, 5), S, S * 4);
+  }
+  function stars(n) {
+    g.fillStyle = '#fff';
+    for (let i = 0; i < n; i++) {
+      g.globalAlpha = rnd(0.2, 0.9);
+      const s = rnd(0, 1) < 0.15 ? 2 : 1;
+      g.fillRect(rnd(0, W), rnd(0, GY * 0.6), s * Math.max(1, S / 3), s * Math.max(1, S / 3));
+    }
+    g.globalAlpha = 1;
+  }
+  function shade(col, a) {
+    g.save();
+    g.globalCompositeOperation = 'multiply';
+    g.globalAlpha = a;
+    g.fillStyle = col;
+    g.fillRect(0, 0, W, H);
+    g.restore();
+  }
+  function glow(x, y, r, col, a = 1) {
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, col);
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = a;
+    g.fillStyle = gr;
+    g.fillRect(x - r, y - r, r * 2, r * 2);
+    g.restore();
+  }
+  function beam(x, y, len, spread, a) {
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    const gr = g.createLinearGradient(x, y, x + len, y);
+    gr.addColorStop(0, `rgba(255,236,170,${a})`);
+    gr.addColorStop(1, 'rgba(255,236,170,0)');
+    g.fillStyle = gr;
+    g.beginPath();
+    g.moveTo(x, y - S);
+    g.lineTo(x + len, y - spread);
+    g.lineTo(x + len, y + spread * 0.6);
+    g.lineTo(x, y + S);
+    g.fill();
+    g.restore();
+  }
+  const X = f => W * f; // horizontal position as a share of the width
+  const scene = {
+    night() {
+      sky([[0, '#060a1c'], [0.55, '#141d3d'], [1, '#2e2c4f']]);
+      stars(portrait ? 160 : 260);
+      glow(X(0.9), H * 0.5, S * 30, 'rgba(240,235,210,0.25)');
+      g.fillStyle = '#ece6cf';
+      g.beginPath();
+      g.arc(X(0.9), H * 0.5, S * 9, 0, 7);
+      g.fill();
+      g.fillStyle = '#141d3d';
+      g.beginPath();
+      g.arc(X(0.9) + S * 4, H * 0.5 - S * 3, S * 8, 0, 7);
+      g.fill();
+      ridge(GY - H * 0.16, H * 0.08, '#1b2240', 40);
+      ruins(GY - H * 0.06, '#18203a');
+      for (let x = 0; x < W; x += S * rnd(14, 30)) spr('pine', 0, x, GY + S * 2, rnd(0.8, 1.3));
+      shade('#2a3570', 0.75);
+      ground('#0f140e', '#1f2d18');
+      // the base on the left, robots coming from the right
+      spr('wall2', 0, X(0.05), GY, 1.1);
+      spr('turret2', 0, X(0.13), GY, 1);
+      spr('wire', 0, X(0.47), GY, 1);
+      spr('hedgehog', 0, X(0.53), GY, 1);
+      spr('v_jeep', 0, X(0.3), GY, 1.15);
+      [0.18, 0.21, 0.4].forEach((p, i) => spr('p_guard', i % 3, X(p), GY, 1.1));
+      spr('walker', 0, X(0.86), GY, 1.35, true);
+      spr('robot', 0, X(0.66), GY, 1.1, true);
+      spr('shieldbot', 1, X(0.72), GY, 1.1, true);
+      spr('robot', 1, X(0.95), GY, 1.1, true);
+      spr('carrier', 0, X(0.62), GY - H * 0.33, 1.1, true);
+      shade('#3b4aa0', 0.45);
+      const jx = X(0.3) + S * 46,
+        jy = GY - S * 30;
+      beam(jx, jy, X(0.42), S * 26, 0.5);
+      glow(jx, jy, S * 10, 'rgba(255,240,190,0.9)');
+      for (const [p, k] of [[0.66, 1], [0.72, 1], [0.86, 1.35], [0.95, 1]])
+        glow(X(p) - S * 4 * k, GY - S * 26 * k, S * 6 * k, 'rgba(255,60,40,0.9)');
+      glow(X(0.13), GY - S * 60, S * 12, 'rgba(255,200,90,0.5)');
+    },
+    dusk() {
+      sky([[0, '#2b2348'], [0.45, '#8a4a5e'], [0.8, '#e08a5a'], [1, '#f2c27a']]);
+      glow(X(0.5), GY - H * 0.12, S * 70, 'rgba(255,190,110,0.55)');
+      g.fillStyle = '#ffd99a';
+      g.beginPath();
+      g.arc(X(0.5), GY - H * 0.12, S * 16, 0, 7);
+      g.fill();
+      ridge(GY - H * 0.15, H * 0.07, '#6b4560', 40);
+      ruins(GY - H * 0.05, '#583a55');
+      for (let x = 0; x < W; x += S * rnd(16, 34)) spr('pine', 0, x, GY + S * 2, rnd(0.8, 1.3));
+      shade('#a0607a', 0.55);
+      ground('#2a2218', '#4a4a22');
+      spr('tower', 0, X(0.08), GY, 1);
+      spr('hq3', 0, X(0.3), GY, 1.1);
+      spr('truck', 0, X(0.55), GY, 1.05);
+      spr('v_jeep', 0, X(0.75), GY, 1.15);
+      [0.43, 0.46, 0.49, 0.88, 0.91].forEach((p, i) => spr('p_guard', i % 6, X(p), GY, 1.1));
+      spr('dog', 0, X(0.84), GY, 1.1);
+      spr('heli', 0, X(0.8), GY - H * 0.36, 0.8);
+      shade('#c07a70', 0.35);
+    },
+    boss() {
+      sky([[0, '#1a0c10'], [0.5, '#4a1a18'], [1, '#a2442a']]);
+      for (let i = 0; i < 9; i++) glow(rnd(0, W), rnd(GY * 0.4, GY), S * rnd(30, 70), 'rgba(255,110,50,0.18)');
+      ridge(GY - H * 0.15, H * 0.07, '#2a1416', 40);
+      ruins(GY - H * 0.05, '#221012');
+      shade('#7a3020', 0.4);
+      ground('#140c0a', '#2a2014');
+      spr('colossus', 0, X(0.8), GY, portrait ? 1.6 : 1.8, true);
+      spr('robot', 0, X(0.55), GY, 1.1, true);
+      spr('robot', 1, X(0.6), GY, 1.1, true);
+      spr('v_tank', 0, X(0.16), GY, 1.1);
+      spr('btr', 0, X(0.34), GY, 1);
+      [0.04, 0.42, 0.45].forEach((p, i) => spr('p_guard', 3 + (i % 3), X(p), GY, 1.1));
+      spr('heli', 0, X(0.3), GY - H * 0.33, 0.8);
+      glow(X(0.8) - S * 26, GY - S * 130, S * 14, 'rgba(255,60,30,0.9)');
+      glow(X(0.16) + S * 75, GY - S * 40, S * 9, 'rgba(255,220,120,0.9)');
+    }
+  };
+  scene[CON]();
+  // dark band behind the title so it reads on any background
+  const gr = g.createLinearGradient(0, 0, 0, H * 0.45);
+  gr.addColorStop(0, 'rgba(0,0,0,0.55)');
+  gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, W, H * 0.45);
+  if (!LOGO) return void (document.title = 'ready');
+  let fs = Math.round(Math.min(W / (TXT.title.length * 0.62), H * (portrait ? 0.1 : 0.19)));
+  g.font = `600 ${fs}px "Pixelify Sans"`;
+  g.textAlign = 'center';
+  g.textBaseline = 'top';
+  const ty = Math.round(H * (portrait ? 0.12 : 0.08)),
+    d = Math.max(3, Math.round(fs / 22));
+  g.fillStyle = '#000';
+  for (let i = d * 2; i > 0; i--) g.fillText(TXT.title, W / 2 + i * 0.4, ty + i);
+  g.fillStyle = '#e7c35a';
+  g.fillText(TXT.title, W / 2, ty);
+  const ss = Math.round(fs * 0.24);
+  g.font = `400 ${ss}px "Pixelify Sans"`;
+  g.fillStyle = '#000';
+  g.fillText(TXT.sub, W / 2 + 2, ty + fs * 1.08 + 3);
+  g.fillStyle = '#f2ead2';
+  g.fillText(TXT.sub, W / 2, ty + fs * 1.08);
+  document.title = 'ready';
+});
+</script>
+</body>
+</html>

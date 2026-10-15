@@ -2,21 +2,20 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0c0e14">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Kingdom: Линия фронта</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=Rubik:wght@400;600&display=swap">
+<title>Линия фронта</title>
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div id="wrap">
   <div id="game"></div>
-  <div id="corner"><button id="mbtn" hidden data-i="menuBtn" data-ia="menuBtn">Меню</button><button id="snd">Звук: вкл</button><button id="fsbtn" hidden data-ia="fsOn" aria-label="Во весь экран"></button></div>
+  <div id="corner"><button id="adbtn" hidden></button><button id="mbtn" hidden data-i="menuBtn" data-ia="menuBtn">Меню</button><button id="snd">Звук: вкл</button><button id="fsbtn" hidden data-ia="fsOn" aria-label="Во весь экран"></button></div>
   <div id="touch">
     <div id="pad"><button id="tl" data-ia="ar_left" aria-label="Влево">◀</button><button id="tr" data-ia="ar_right" aria-label="Вправо">▶</button></div>
     <div class="grp"><button id="tf" data-ia="ar_fast" aria-label="Газ">»</button><button id="tp" class="pay" data-ia="ar_pay" aria-label="Платить">★</button></div>
@@ -26,7 +25,7 @@
   <div class="overlay" id="menu">
     <div class="card">
       <div class="stamp" id="menuStamp">Гарнизон «Перевал» · Приказ №1</div>
-      <h1>Kingdom: <span data-i="titleB">Линия фронта</span></h1>
+      <h1><span data-i="titleB">Линия фронта</span></h1>
       <div class="panel" id="pMain">
         <p class="tag" data-i="tag"></p>
         <div class="mbtns">
@@ -77,12 +76,12 @@
       <div class="stamp" id="endStamp"></div>
       <h1 id="endTitle"></h1>
       <p id="endText"></p>
-      <div class="btns"><button class="go" id="nextFront" hidden data-i="e_next"></button><button class="go" id="restart" data-i="m_new"></button><button class="go alt" id="toMenu" data-i="m_main"></button></div>
+      <div class="btns"><button class="go" id="nextFront" hidden data-i="e_next"></button><button class="go alt" id="bonus" hidden></button><button class="go" id="restart" data-i="m_new"></button><button class="go alt" id="toMenu" data-i="m_main"></button></div>
     </div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
+<script src="vendor/phaser.min.js"></script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

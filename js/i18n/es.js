@@ -1,6 +1,6 @@
 /* Español (es): every visible text of the game. {0},{1}… are arguments. */
 export default {
-  docTitle: 'Kingdom: Línea del frente',
+  docTitle: 'Línea del frente',
   titleB: 'Línea del frente',
   stamp: 'Guarnición «Pereval» · Orden n.º 1',
   tag: 'De día construye y arma a tu escuadra; de noche resiste el ataque de los robots de combate.',
@@ -49,9 +49,9 @@ export default {
   fsOff: 'Salir de pantalla completa',
   s_vibro: 'Vibración',
   a_text1:
-    'Un pequeño juego de navegador inspirado en Kingdom: Two Crowns y trasladado a nuestros días: una base avanzada en lugar de un reino, fichas de suministro en lugar de monedas y un blindado en lugar de un caballo.',
+    'Un pequeño juego de estrategia de desplazamiento lateral sobre el comandante de una base avanzada: de día reúnes fichas de suministro, contratas soldados y construyes defensas; de noche resistes en la línea contra robots de combate.',
   a_text2:
-    'Todos los gráficos y sonidos se generan con código en el propio navegador. La guarnición «Pereval», los robots y los portales son ficticios; los vehículos están dibujados a partir de modelos reales.',
+    'El progreso se guarda automáticamente en cada amanecer. La guarnición «Pereval», los robots y los portales son ficticios.',
   a_ver: 'Versión {0}',
   e_stampWin: 'Informe · Misión cumplida',
   e_stampLose: 'Informe · Misión fallida',
@@ -67,6 +67,13 @@ export default {
     ' Frente {0} asegurado. Con el comandante viajan al frente {1}: soldados {2}, zapadores {3}{4}. Allí el enemigo es más fuerte.',
   e_dog: ', el perro militar',
   e_next: 'Siguiente frente',
+  e_bonus: 'Ver anuncio: +{0} fichas',
+  e_bonusGot: 'Bonus por anuncio: +{0} fichas.',
+  ad_btn: 'Ver anuncio: +{0}',
+  ad_got: 'Recompensa del anuncio: +{0}',
+  ad_none: 'No hay anuncios disponibles ahora, inténtalo más tarde',
+  ad_block: 'Los anuncios están bloqueados: desactiva tu bloqueador',
+  ad_wait: 'Los anuncios volverán a estar disponibles pronto',
   hudFront: 'FRENTE {0}',
   hudDay: 'DÍA {0}',
   tok: '{0} fichas',

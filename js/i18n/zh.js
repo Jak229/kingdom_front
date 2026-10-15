@@ -1,6 +1,6 @@
 /* 中文 (zh): every visible text of the game. {0},{1}… are arguments. Numbers also come as arabic numerals in extra arguments. */
 export default {
-  docTitle: 'Kingdom：前线',
+  docTitle: '前线',
   titleB: '前线',
   stamp: '“山口”守备队 · 第1号命令',
   tag: '白天建设基地、武装小队，夜晚抵御战斗机器人的进攻。',
@@ -48,9 +48,9 @@ export default {
   fsOff: '退出全屏',
   s_vibro: '振动',
   a_text1:
-    '一款受 Kingdom: Two Crowns 启发的小型网页游戏，背景搬到了现代：王国变成前沿基地，金币变成补给币，战马变成装甲车。',
+    '一款横版策略小游戏：你是前沿基地的指挥官，白天收集补给币、招募士兵、修建工事，夜里坚守防线，抵御战斗机器人。',
   a_text2:
-    '所有画面和声音都由代码在浏览器中实时生成。“山口”守备队、机器人和传送门均为虚构，车辆则参照真实型号绘制。',
+    '每天黎明时游戏会自动保存进度。“山口”守备队、机器人和传送门均为虚构。',
   a_ver: '版本 {0}',
   e_stampWin: '战报 · 任务完成',
   e_stampLose: '战报 · 任务失败',
@@ -64,6 +64,13 @@ export default {
   e_carry: '第{5}战线已守住。随指挥官前往第{6}战线的有士兵{2}名、工兵{3}名{4}。那里的敌人更强。',
   e_dog: '，还有军犬',
   e_next: '下一条战线',
+  e_bonus: '看广告：+{0} 币',
+  e_bonusGot: '广告奖励：+{0} 币。',
+  ad_btn: '看广告：+{0}',
+  ad_got: '广告奖励：+{0}',
+  ad_none: '暂时没有可用的广告，请稍后再试',
+  ad_block: '广告被拦截：请关闭广告拦截器',
+  ad_wait: '广告稍后可用',
   hudFront: '第{1}战线',
   hudDay: '第{1}天',
   tok: '{0}币',

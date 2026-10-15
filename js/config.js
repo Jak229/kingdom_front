@@ -11,7 +11,8 @@ export const W = 960,
 // K = how many real screen pixels one game unit gets, so the canvas is never upscaled
 export const K = Math.max(
   0.5,
-  Math.min(4, Math.min(window.innerWidth / W, window.innerHeight / H) * (window.devicePixelRatio || 1))
+  // capped at 3: past that the canvas gets huge on 4K and high-DPI phone screens for no visible gain
+  Math.min(3, Math.min(window.innerWidth / W, window.innerHeight / H) * (window.devicePixelRatio || 1))
 );
 export const PURSE = 40,
   SEASON_DAYS = 3;
@@ -76,4 +77,4 @@ export const SHOPS = {
   agro: {role: 'farmer', cost: 3, color: 0x6b5a35}
 };
 
-export const VERSION = 19;
+export const VERSION = 22;

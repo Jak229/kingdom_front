@@ -41,11 +41,18 @@ import {
 } from './render/helpers.js';
 import {ATLAS, SP, SPR, SPT, fname, initSprites, loadSprites} from './sprites.js';
 import {AU} from './audio.js';
+import {CG} from './crazygames.js';
 import {LAYERS, SEASON_TINT, makeLayers} from './render/layers.js';
 import {$} from './ui/dom.js';
 import {TOUCH, buzz, touch} from './ui/touch.js';
 import {TUT_BOTTOM, syncTut} from './ui/tutorial.js';
 import {toggleSound} from './ui/settings.js';
+import {syncAdButton} from './ui/adbutton.js';
+
+// Text.setColor redraws the text and re-uploads its texture even when nothing changed, so skip same-colour calls
+function recolor(t, c) {
+  if (t.style.color !== c) t.setColor(c);
+}
 
 export class Main extends Phaser.Scene {
   constructor() {
@@ -120,8 +127,11 @@ export class Main extends Phaser.Scene {
     this.light = A(this.add.graphics().setDepth(7.5).setBlendMode(Phaser.BlendModes.ADD));
     // water with a rippling reflection of everything above the bank
     this.water = A(this.add.graphics().setScrollFactor(0).setDepth(8));
-    this.reflTex = this.textures.addDynamicTexture('refl', Math.round(W * K), Math.round(this.RH * K));
-    this.reflTex.camera.setOrigin(0, 0).setZoom(K);
+    // the reflection is soft and half transparent, so it renders at a lower resolution than the scene (RK) and every other frame
+    const RK = (this.RK = Math.min(K, 1.25));
+    this.reflTex = this.textures.addDynamicTexture('refl', Math.round(W * RK), Math.round(this.RH * RK));
+    this.reflTex.camera.setOrigin(0, 0).setZoom(RK);
+    this.reflN = 0;
     const rtH = H - this.WY,
       n = Math.ceil(rtH / 3);
     this.strips = [];
@@ -132,11 +142,11 @@ export class Main extends Phaser.Scene {
           .setOrigin(0, 0)
           .setScrollFactor(0)
           .setDepth(8.2)
-          .setScale(1 / K, -rtH / this.RH / K)
+          .setScale(1 / RK, -rtH / this.RH / RK)
           .setAlpha(0.5)
       );
-      const r0 = (this.RH - ((i + 1) * this.RH) / n) * K;
-      im.setCrop(0, r0, W * K, (this.RH / n + 1) * K);
+      const r0 = (this.RH - ((i + 1) * this.RH) / n) * RK;
+      im.setCrop(0, r0, W * RK, (this.RH / n + 1) * RK);
       im.k = i / n;
       this.strips.push(im);
     }
@@ -227,8 +237,11 @@ export class Main extends Phaser.Scene {
       step,
       scene: this,
       input,
-      AU
+      AU,
+      CG
     };
+    CG.onHush(h => AU.setHush(h));
+    CG.loaded();
   }
   spr(pool, key, frame, x, y, flip, tint, alpha, fill) {
     if (this.winter && SPR[key].snow) key += '_w';
@@ -344,6 +357,8 @@ export class Main extends Phaser.Scene {
     input.fast = k.SHIFT.isDown || touch.fast || touch.dash;
     if (Phaser.Input.Keyboard.JustDown(k.M)) toggleSound();
     step(dt);
+    CG.setPlaying(S.running && !S.paused && !S.over && !S.won && $('menu').hidden);
+    syncAdButton();
     syncTut();
     this.events_(dt);
     this.makeSigns();
@@ -1401,20 +1416,22 @@ export class Main extends Phaser.Scene {
     wt.fillRect(0, WY, W, H - WY);
     const rt = this.reflTex,
       y0 = -(WY - this.RH);
-    rt.clear();
-    rt.draw(this.sky, 0, y0);
-    for (const im of this.layers) rt.draw(im, 0, y0);
-    rt.draw(this.fog, 0, y0);
-    rt.draw(this.gr, -cx, y0);
-    rt.draw(this.seasonG, -cx, y0);
-    rt.draw(this.decoG, -cx, y0);
-    rt.draw(this.decoC, -cx, y0);
-    rt.draw(this.bldC, -cx, y0);
-    rt.draw(this.unitC, -cx, y0);
-    rt.draw(this.frontC, -cx, y0);
-    rt.draw(this.g, -cx, y0);
-    rt.draw(this.fx, -cx, y0);
-    rt.draw(this.light, -cx, y0);
+    if (this.reflN++ % 2 === 0) {
+      rt.clear();
+      rt.draw(this.sky, 0, y0);
+      for (const im of this.layers) rt.draw(im, 0, y0);
+      rt.draw(this.fog, 0, y0);
+      rt.draw(this.gr, -cx, y0);
+      rt.draw(this.seasonG, -cx, y0);
+      rt.draw(this.decoG, -cx, y0);
+      rt.draw(this.decoC, -cx, y0);
+      rt.draw(this.bldC, -cx, y0);
+      rt.draw(this.unitC, -cx, y0);
+      rt.draw(this.frontC, -cx, y0);
+      rt.draw(this.g, -cx, y0);
+      rt.draw(this.fx, -cx, y0);
+      rt.draw(this.light, -cx, y0);
+    }
     for (const im of this.strips) {
       const k = im.k;
       im.x = wint ? 0 : Math.sin(now * 1.1 + k * 16) * (0.5 + k * 2.2) * (1 + rainK * 0.5);
@@ -1574,10 +1591,8 @@ export class Main extends Phaser.Scene {
             VEH[p.veh].name
           );
       }
-      this.hintTxt
-        .setText(t)
-        .setVisible(true)
-        .setColor(ti.payable ? '#f1ecd6' : '#bdb79e');
+      this.hintTxt.setText(t).setVisible(true);
+      recolor(this.hintTxt, ti.payable ? '#f1ecd6' : '#bdb79e');
     } else this.hintTxt.setVisible(false);
     this.toastTxt.y = TUT_BOTTOM ? Math.max(78, TUT_BOTTOM + 10) : 78;
     this.bannerTxt.y = TUT_BOTTOM ? Math.max(150, TUT_BOTTOM + 66) : 150;
@@ -1586,7 +1601,7 @@ export class Main extends Phaser.Scene {
         .setText(TOUCH ? S.toast.text.replace(/↓/g, '★') : S.toast.text)
         .setVisible(true)
         .setAlpha(Math.min(1, S.toast.t * 2));
-      this.toastTxt.setColor(S.toast.warn ? '#ffb3a0' : '#f1ecd6');
+      recolor(this.toastTxt, S.toast.warn ? '#ffb3a0' : '#f1ecd6');
     } else this.toastTxt.setVisible(false);
     if (this.banner) {
       const b = this.banner,

@@ -5,6 +5,9 @@ import {S} from '../state.js';
 import {nextFrontState} from '../logic/step.js';
 import {clearSave, saveGame} from '../save.js';
 import {AU} from '../audio.js';
+import {CG} from '../crazygames.js';
+import {adFailText} from './adbutton.js';
+import {PURSE} from '../config.js';
 import {syncCorner} from './menu.js';
 
 export function gameOver() {
@@ -16,6 +19,7 @@ export function showEnd(won) {
   if (won) {
     S.nextFront = nextFrontState(S);
     saveGame(S.nextFront);
+    CG.happytime();
   } else clearSave();
   S.endWon = won;
   fillEnd();
@@ -28,6 +32,8 @@ export function fillEnd() {
   const won = S.endWon,
     el = id => document.getElementById(id);
   el('nextFront').hidden = !won;
+  el('bonus').hidden = !won || !CG.active || !!S.bonusGot;
+  el('bonus').textContent = tr('e_bonus', BONUS);
   el('restart').classList.toggle('alt', won);
   el('endStamp').textContent = tr(won ? 'e_stampWin' : 'e_stampLose');
   const h = el('endTitle'),
@@ -51,5 +57,28 @@ export function fillEnd() {
       S.front + 1
     );
   }
+  if (won && S.bonusGot) t += ' ' + tr('e_bonusGot', BONUS);
   el('endText').textContent = t;
+}
+// rewarded ad on the victory card: extra coins carried to the next front
+const BONUS = 15;
+export function initEnd() {
+  const b = document.getElementById('bonus');
+  b.addEventListener('click', async () => {
+    if (b.disabled || !S.nextFront) return;
+    b.disabled = true;
+    const ok = await CG.rewarded();
+    b.disabled = false;
+    if (!ok) {
+      // say why instead of silently doing nothing, then offer the button again
+      b.textContent = adFailText();
+      setTimeout(fillEnd, 3500);
+      return;
+    }
+    if (S.bonusGot || !S.nextFront) return;
+    S.bonusGot = true;
+    S.nextFront.coins = Math.min(PURSE, S.nextFront.coins + BONUS);
+    saveGame(S.nextFront);
+    fillEnd();
+  });
 }
