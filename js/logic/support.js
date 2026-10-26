@@ -7,6 +7,7 @@ import {dropCoin, fire, outerWall, puff, rocketUp, sfx, toast} from './rules.js'
 import {nearestEnemy} from './people.js';
 import {hitE, jammed} from './enemies.js';
 import {SP} from '../sprites.js';
+import {achieve, ev} from '../meta.js';
 
 /* ---------- ATGM, spec ops, finance, convoy ---------- */
 export function assaultTarget() {
@@ -156,6 +157,7 @@ export function updSquad(dt) {
       if (S.portalHp[pi] <= 0) {
         S.portalDead[pi] = true;
         S.portalHp[pi] = 0;
+        ev('portal');
         sfx('portalDie', px);
         sfx('radio', null, {v: 'order', d: 1});
         for (let i = 0; i < 30; i++)
@@ -261,9 +263,11 @@ export function unlockWild(w) {
   w.pending = 0;
   puff(w.x, GY - 40, 0xd9b44a, 14);
   if (w.type === 'depot') {
+    if (w.veh === 'tank') achieve('tank');
     swapVehicle(w, w.veh);
     return;
   }
+  if (w.type === 'dog') achieve('dog');
   S.buff[w.type] = true;
   sfx('unlock', w.x);
   if (w.type === 'dog')

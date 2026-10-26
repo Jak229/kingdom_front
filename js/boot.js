@@ -6,12 +6,14 @@ import {initTutorialPanel} from './ui/tutorial.js';
 import {initSettings} from './ui/settings.js';
 import {applyLang, initMenu, syncCorner} from './ui/menu.js';
 import {initAdButton} from './ui/adbutton.js';
+import {initMeta} from './ui/meta.js';
 
 initTouch();
 initTutorialPanel();
 initSettings();
 initMenu();
 initAdButton();
+initMeta();
 applyLang();
 setTouchMode(matchMedia('(pointer:coarse)').matches);
 syncCorner();

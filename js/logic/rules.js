@@ -6,6 +6,7 @@ import {S, input} from '../state.js';
 import {bombBoom, dropCargo, hitE} from './enemies.js';
 import {assaultTarget, swapVehicle, unlockWild} from './support.js';
 import {SP} from '../sprites.js';
+import {achieve, ev} from '../meta.js';
 
 /* ---------- rules ---------- */
 export function reqFor(sp, lvl) {
@@ -14,7 +15,16 @@ export function reqFor(sp, lvl) {
 }
 export function canUpgrade(sp) {
   const d = DEFS[sp.type];
-  return sp.level < d.max && !sp.paid && S.hq.level >= reqFor(sp, sp.level + 1);
+  return (
+    sp.level < d.max &&
+    !sp.paid &&
+    S.hq.level >= reqFor(sp, sp.level + 1) &&
+    !(sp.level === 0 && inForest(sp.x))
+  );
+}
+// an empty position still stands among trees: nothing can be built there until sappers clear them
+export function inForest(x) {
+  return S.trees.some(t => t.st < 2 && Math.abs(t.x - x) < 40);
 }
 export function toast(text, warn) {
   S.toast = {text, t: 3.2, warn: !!warn};
@@ -137,6 +147,13 @@ function findTarget() {
       best = {kind: 'spot', obj: sp};
     }
   }
+  for (const tw of S.trees) {
+    const d = Math.abs(tw.x - p.x);
+    if (tw.st < 2 && d < 22 && d < bd) {
+      bd = d;
+      best = {kind: 'tree', obj: tw};
+    }
+  }
   for (const sh of S.shops) {
     const d = Math.abs(sh.x - p.x);
     if (d < 38 && d < bd) {
@@ -157,6 +174,17 @@ function findTarget() {
 function targetInfo(t) {
   if (!t) return null;
   if (t.kind === 'vagrant') return {payable: true, cost: 1, text: tr('recruit')};
+  if (t.kind === 'tree') {
+    if (t.obj.st !== 0) return {payable: false, text: tr('treeWait')};
+    // say which position the tree stands on, so the forest reads as room for the next ring of defences
+    const sp = S.spots.find(o => o.level === 0 && !o.paid && Math.abs(o.x - t.obj.x) < 40);
+    return {
+      payable: true,
+      cost: 1,
+      action: 'chop',
+      text: sp ? tr('treeMarkFor', DEFS[sp.type].name[1]) : tr('treeMark')
+    };
+  }
   if (t.kind === 'wild') {
     const w = t.obj;
     if (w.type === 'depot') {
@@ -181,6 +209,7 @@ function targetInfo(t) {
   const sp = t.obj,
     d = DEFS[sp.type];
   if (sp.paid) return {payable: false, text: tr('waitSapper', d.name[sp.level + 1])};
+  if (sp.level === 0 && inForest(sp.x)) return {payable: false, text: tr('forestBlocked', d.name[1])};
   if (sp.type === 'bank' && sp.level > 0) {
     if (S.coins <= 2 && sp.saved > 0) return {payable: false, text: tr('bankGive')};
     return {payable: true, cost: 1, action: 'deposit', text: tr('bankDeposit', tokN(sp.saved || 0))};
@@ -255,6 +284,7 @@ export function handlePay(dt) {
     return;
   }
   if (t.kind === 'vagrant') {
+    ev('recruit');
     sfx('recruit', t.obj.x);
     t.obj.role = 'idle';
     t.obj.cd = 0;
@@ -274,7 +304,12 @@ export function handlePay(dt) {
       sfx('equip', o.x);
       puff(o.x, GY - 50, 0xd9b44a, 8);
     } else if (t.kind === 'wild') unlockWild(o);
-    else if (S.targetInfo.action === 'squad') {
+    else if (t.kind === 'tree') {
+      o.st = 1;
+      puff(o.x, GY - 40, 0xd9b44a, 8);
+      sfx('order', o.x);
+      if (!S.people.some(m => m.role === 'builder')) toast(tr('needSapper'));
+    } else if (S.targetInfo.action === 'squad') {
       S.squad = {x: o.x + 30, hp: 30, maxHp: 30, mode: 'home', cd: 0, anim: 0, dir: 1, side: 1, pick: 0};
       puff(o.x, GY - 20, 0xd9b44a, 12);
       sfx('radio', null, {v: 'order'});
@@ -304,8 +339,13 @@ export function completeSpot(sp) {
   }
   puff(sp.x, GY - 40, 0xe8e4c8, 12);
   sfx(sp.type === 'hq' ? 'hqUp' : 'built', sp.x);
+  ev('build');
+  if (sp.type === 'hq') ev('hq');
+  if (sp.type === 'hq' && sp.level === 4) achieve('base');
+  if (sp.type === 'wall' && sp.level === 3) achieve('pillbox');
   if (sp.type === 'hq') {
     toast(tr('hqOpens', d.name[sp.level], tr('opens' + sp.level)));
+    if (sp.level === 2) S.later.push({t: 4.5, text: tr('forestHint')});
   } else if (sp.type === 'launch' && sp.level === 2) {
     sp.fuel = 0;
     sp.maxHp = sp.hp = rocketHp();
@@ -324,6 +364,8 @@ export function kill(target) {
   target.dead = true;
   if (target.isEnemy) {
     S.kills++;
+    ev('kill');
+    if (target.boss) ev('boss');
     sfx(
       target.boss ? 'walkerDie' : target.fly ? 'droneDie' : target.brute ? 'bruteDie' : 'robotDie',
       target.x
@@ -343,6 +385,7 @@ export function kill(target) {
     }
     if (target.kind === 'bomber') bombBoom(target.x, false, target);
   } else {
+    ev('drone');
     puff(target.x, target.y, 0x55574f, 8);
     dropCoin(target.x, target.y);
     sfx('droneDie', target.x);

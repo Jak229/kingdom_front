@@ -13,6 +13,7 @@ import {CG} from '../crazygames.js';
 import {$} from './dom.js';
 import {layoutCorner} from './touch.js';
 import {syncToggles} from './settings.js';
+import {deployReserve, metaLabel, renderMeta} from './meta.js';
 
 // menu: the same card is the title screen and the pause screen
 export const inGame = () => !!(S && S.running && !S.over && !S.won);
@@ -41,7 +42,7 @@ function refreshMenu() {
 }
 function showPanel(id) {
   panel = id;
-  for (const p of ['pMain', 'pHelp', 'pSet', 'pAbout']) $(p).hidden = p !== id;
+  for (const p of ['pMain', 'pHelp', 'pSet', 'pAbout', 'pMeta']) $(p).hidden = p !== id;
   $('menu').firstElementChild.scrollTop = 0;
 }
 export function syncCorner() {
@@ -80,6 +81,8 @@ export function applyLang() {
     b.setAttribute('aria-pressed', String(on));
   }
   $('ver').textContent = tr('a_ver', VERSION);
+  metaLabel();
+  if (!$('pMeta').hidden) renderMeta();
   syncToggles();
   refreshMenu();
   if (S) {
@@ -99,6 +102,7 @@ function begin(sv, next) {
   else if (S.over || S.won) setS(newState());
   S.running = true;
   S.paused = false;
+  deployReserve();
   const sc = window.__kg && window.__kg.scene;
   if (sc) {
     sc.showBanner(S.day);
@@ -118,6 +122,10 @@ export function initMenu() {
   $('bHelp').addEventListener('click', () => showPanel('pHelp'));
   $('bSet').addEventListener('click', () => showPanel('pSet'));
   $('bAbout').addEventListener('click', () => showPanel('pAbout'));
+  $('bMeta').addEventListener('click', () => {
+    showPanel('pMeta');
+    renderMeta();
+  });
   document
     .querySelectorAll('[data-back]')
     .forEach(b => b.addEventListener('click', () => showPanel('pMain')));

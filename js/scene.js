@@ -19,7 +19,7 @@ import {
 import {LANG, tokN, tr} from './i18n/index.js';
 import {clamp, lerp, lerpColor, rnd, rng, roman} from './util.js';
 import {S, input, newState, setS} from './state.js';
-import {canUpgrade, fuelNeed, guardSides, reqFor} from './logic/rules.js';
+import {canUpgrade, fuelNeed, guardSides, inForest, reqFor} from './logic/rules.js';
 import {TUT} from './logic/tutorial.js';
 import {darkness, step} from './logic/step.js';
 import {
@@ -48,6 +48,9 @@ import {TOUCH, buzz, touch} from './ui/touch.js';
 import {TUT_BOTTOM, syncTut} from './ui/tutorial.js';
 import {toggleSound} from './ui/settings.js';
 import {syncAdButton} from './ui/adbutton.js';
+import {PROF} from './meta.js';
+import {skinTex} from './render/skins.js';
+import {syncAwards} from './ui/meta.js';
 
 // Text.setColor redraws the text and re-uploads its texture even when nothing changed, so skip same-colour calls
 function recolor(t, c) {
@@ -179,6 +182,12 @@ export class Main extends Phaser.Scene {
         .setScrollFactor(0)
         .setDepth(11)
     );
+    this.crTxt = U(
+      this.add
+        .text(40, 44, '', {...tf, fontSize: '16px', color: '#bdeffa'})
+        .setScrollFactor(0)
+        .setDepth(11)
+    );
     this.dayTxt = U(
       this.add
         .text(W - 16, 12, '', {...tf, fontSize: '18px', align: 'right'})
@@ -243,17 +252,21 @@ export class Main extends Phaser.Scene {
     CG.onHush(h => AU.setHush(h));
     CG.loaded();
   }
-  spr(pool, key, frame, x, y, flip, tint, alpha, fill) {
+  // tex: another texture with the same frame names (a vehicle skin)
+  spr(pool, key, frame, x, y, flip, tint, alpha, fill, tex) {
     if (this.winter && SPR[key].snow) key += '_w';
-    const fr = fname(key, frame);
+    const fr = fname(key, frame),
+      tk = tex || ATLAS;
     let im = pool.list[pool.n++];
     if (!im) {
-      im = new Phaser.GameObjects.Image(this, 0, 0, ATLAS, fr);
+      im = new Phaser.GameObjects.Image(this, 0, 0, tk, fr);
       pool.c.add(im);
       pool.list.push(im);
     }
-    if (im.frame.name !== fr) im.setFrame(fr);
+    if (im.texture.key !== tk) im.setTexture(tk, fr);
+    else if (im.frame.name !== fr) im.setFrame(fr);
     const s = SPR[key];
+    im.rotation = 0;
     im.setOrigin(s.ox, s.oy)
       .setScale(SPT)
       .setFlipX(!!flip)
@@ -360,6 +373,7 @@ export class Main extends Phaser.Scene {
     CG.setPlaying(S.running && !S.paused && !S.over && !S.won && $('menu').hidden);
     syncAdButton();
     syncTut();
+    syncAwards();
     this.events_(dt);
     this.makeSigns();
     this.render(dt);
@@ -402,7 +416,10 @@ export class Main extends Phaser.Scene {
         AU.play({k: 'boom', x: b.x});
       }
     const bm = S.people.find(m => m.working && m.role === 'builder' && Math.abs(m.x - AU.cx) < W);
-    if (bm && AU.ctx && !AU.muted) AU.build(bm.x);
+    if (bm && AU.ctx && !AU.muted) {
+      if (bm.task && !bm.task.type) AU.chop(bm.x);
+      else AU.build(bm.x);
+    }
     AU.update(dt, S, darkness(), this.rain, AU.cx);
     if (this.banner) {
       this.banner.t -= dt;
@@ -488,6 +505,7 @@ export class Main extends Phaser.Scene {
       block(sp.x - r, sp.x + r);
     }
     for (const sh of S.shops) block(sh.x - 42, sh.x + 42);
+    for (const t of S.trees) block(t.x - 16, t.x + 16);
     for (const c of S.camps) block(c - 80, c + 80);
     for (const q of S.portals) block(q - 64, q + 64);
     for (const w of S.wild) {
@@ -684,7 +702,7 @@ export class Main extends Phaser.Scene {
       tree(0, x, {far: 1});
     }
     // near trees in clusters outside the walls, keeping interactive objects clear
-    for (let x = 40; x < WORLD - 40;) {
+    for (let x = 40; x < WORLD - 40; ) {
       if (!inner(x) && free(x - 14, x + 14) && rn() < 0.62) {
         const n = 1 + Math.floor(rn() * 3);
         let xx = x;
@@ -919,6 +937,32 @@ export class Main extends Phaser.Scene {
         if (!S.portalDead[i]) glow(L, px, GY - 42, 110, 0x9b4dff, 0.05 + 0.1 * dk);
       }
     });
+    // the forest round the base: standing, marked for felling (ribbon), being chopped (shakes), falling, stump
+    for (const t of S.trees) {
+      if (!vis(t.x)) continue;
+      const key = t.pine ? 'pine' : 'tree_s' + si;
+      if (t.st === 2) {
+        this.spr(B, 'stump', t.f, t.x, GY, t.flip);
+        if (t.fall != null && t.fall < 1) {
+          t.fall = Math.min(1, t.fall + dt * 1.4);
+          const k = t.fall,
+            im = this.spr(B, key, t.f, t.x, GY, t.flip, null, k > 0.8 ? (1 - k) * 5 : 1);
+          im.rotation = (t.x < C ? -1 : 1) * k * k * 1.5;
+        }
+        continue;
+      }
+      const shake = t.st === 1 && t.chop !== t.pc ? Math.sin(now * 45) * 0.6 : 0;
+      t.pc = t.chop;
+      this.spr(B, key, t.f, t.x + shake, GY, t.flip);
+      if (t.st === 1) {
+        const ry = GY - 16 - 2 * Math.sin(now * 3 + t.x);
+        fx.fillStyle(0x14120c, 0.8);
+        fx.fillRect(t.x - 4, ry - 1, 9, 5);
+        fx.fillStyle(0xe8c24a, 1);
+        fx.fillRect(t.x - 3, ry, 7, 3);
+        fx.fillTriangle(t.x + 4, ry, t.x + 9, ry + 4 + Math.sin(now * 4 + t.x), t.x + 4, ry + 3);
+      }
+    }
     for (const sh of S.shops)
       if (vis(sh.x)) {
         const open = S.hq.level >= sh.minHq;
@@ -1033,7 +1077,8 @@ export class Main extends Phaser.Scene {
         const near = Math.abs(sp.x - p.x) < 160;
         if (near && canUpgrade(sp))
           this.spr(B, SPOT_KEY[sp.type](1), 0, x, GY, sp.aim < 0, 0xf0ecd0, 0.28, true);
-        this.spr(B, 'stake', S.hq.level >= reqFor(sp, 1) ? 0 : 1, x, GY);
+        // a position still in the forest gets the grey stake until the trees around it are down
+        this.spr(B, 'stake', S.hq.level >= reqFor(sp, 1) && !inForest(sp.x) ? 0 : 1, x, GY);
       }
     }
     for (const w of S.wild)
@@ -1105,6 +1150,14 @@ export class Main extends Phaser.Scene {
         else if (m.moving) f = ((m.anim * 8) | 0) % 4;
         const hurt = m.hurt > 0;
         this.spr(U, 'p_' + m.role, f, m.x, GY, m.dir < 0, hurt ? 0xffa090 : null);
+        if (m.vet) {
+          // specialists wear a gold chevron
+          const vy = spy('p_guard', GY, 0) - (hurt ? 14 : 5);
+          fx.fillStyle(0x14120c, 0.85);
+          fx.fillTriangle(m.x - 5, vy - 1, m.x + 5, vy - 1, m.x, vy + 4);
+          fx.fillStyle(0xe8c24a, 1);
+          fx.fillTriangle(m.x - 3.5, vy - 0.5, m.x + 3.5, vy - 0.5, m.x, vy + 3);
+        }
         if (hurt) {
           const hy = spy('p_guard', GY, 0) - 8;
           fx.fillStyle(0xffffff, 1);
@@ -1259,7 +1312,10 @@ export class Main extends Phaser.Scene {
         p.x - d * (p.recoil || 0) * 6,
         GY,
         d < 0,
-        hit ? 0xff7060 : null
+        hit ? 0xff7060 : null,
+        null,
+        false,
+        skinTex(this, PROF.skin)
       );
       if (dk > 0.3) {
         fx.fillStyle(0xfff3b0, 0.22 * dk);
@@ -1394,7 +1450,14 @@ export class Main extends Phaser.Scene {
     if (S.target && S.targetInfo && S.targetInfo.payable && S.target.kind !== 'vagrant') {
       const o = S.target.obj,
         n = S.targetInfo.cost,
-        yy = S.target.kind === 'wild' ? GY - SPR[o.type].h * SP - 16 : o.type ? pipY(o) : GY - 74;
+        yy =
+          S.target.kind === 'wild'
+            ? GY - SPR[o.type].h * SP - 16
+            : S.target.kind === 'tree'
+              ? GY - SPR[o.pine ? 'pine' : 'tree_s0'].h * SP - 10
+              : o.type
+                ? pipY(o)
+                : GY - 74;
       for (let i = 0; i < n; i++) {
         const xx = o.x - (n - 1) * 6 + i * 12;
         fx.lineStyle(1.5, 0xe8c24a, 1);
@@ -1530,6 +1593,16 @@ export class Main extends Phaser.Scene {
     hud.fillStyle(0xfff0a0, 1);
     hud.fillRect(21, 23, 2, 2);
     this.coinTxt.setText(String(S.coins));
+    // crystals: kept between operations, spent in the shop
+    hud.fillStyle(0x14120c, 0.9);
+    hud.fillTriangle(23, 44, 33, 53, 23, 62);
+    hud.fillTriangle(23, 44, 13, 53, 23, 62);
+    hud.fillStyle(0x6fd8f0, 1);
+    hud.fillTriangle(23, 46, 31, 53, 23, 60);
+    hud.fillTriangle(23, 46, 15, 53, 23, 60);
+    hud.fillStyle(0xd8f8ff, 1);
+    hud.fillTriangle(23, 46, 19, 51, 23, 53);
+    this.crTxt.setText(String(PROF.cr));
     this.dayTxt.setText(
       (S.front > 1 ? tr('hudFront', roman(S.front), S.front) + ' · ' : '') +
         tr('hudDay', roman(S.day), S.day) +

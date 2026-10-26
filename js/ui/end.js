@@ -9,6 +9,7 @@ import {CG} from '../crazygames.js';
 import {adFailText} from './adbutton.js';
 import {PURSE} from '../config.js';
 import {syncCorner} from './menu.js';
+import {achieve, ev} from '../meta.js';
 
 export function gameOver() {
   if (S.over) return;
@@ -17,6 +18,8 @@ export function gameOver() {
 }
 export function showEnd(won) {
   if (won) {
+    ev('victory');
+    if (S.front + 1 >= 3) achieve('front3');
     S.nextFront = nextFrontState(S);
     saveGame(S.nextFront);
     CG.happytime();

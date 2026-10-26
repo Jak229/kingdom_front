@@ -21,6 +21,7 @@
     <div class="grp"><button id="tf" data-ia="ar_fast" aria-label="Газ">»</button><button id="tp" class="pay" data-ia="ar_pay" aria-label="Платить">★</button></div>
   </div>
   <div id="tut" hidden role="status" aria-live="polite"><div class="tt"><span class="tl"><span data-i="tut_label"></span><span id="tutDots"></span></span><span class="tb"><button id="tutNext" class="next" hidden></button><button id="tutSkip" data-i="tut_skip"></button></span></div><p id="tutText"></p></div>
+  <div id="award" hidden role="status" aria-live="polite"><span id="awK"></span><b id="awT"></b><span id="awR"></span></div>
   <div class="overlay" id="rotate" hidden><div class="rot"><div class="phone"></div><p data-i="rotate"></p><button class="go alt" id="rotGo" data-i="rotateAnyway"></button></div></div>
   <div class="overlay" id="menu">
     <div class="card">
@@ -32,6 +33,7 @@
           <button class="go" id="resume" hidden data-i="m_resume"></button>
           <button class="go" id="cont" hidden></button>
           <button class="go" id="start">В бой</button>
+          <button class="go alt meta" id="bMeta"></button>
           <button class="go alt" id="bHelp" data-i="m_help"></button>
           <button class="go alt" id="bSet" data-i="m_settings"></button>
           <button class="go alt" id="bAbout" data-i="m_about"></button>
@@ -51,6 +53,7 @@
         <p data-i="h_world"></p>
         <p data-i="h_nights"></p>
         <p data-i="h_foes"></p>
+        <p data-i="h_meta"></p>
         <div class="btns"><button class="go alt" data-back data-i="m_back"></button></div>
       </div>
       <div class="panel" id="pSet" hidden>
@@ -61,6 +64,11 @@
         <div class="row"><span data-i="s_tut"></span><button class="tog" id="tTut"></button></div>
         <div class="row"><span data-i="s_music"></span><span class="ctl"><input type="range" id="vMusic" min="0" max="100" step="5" data-ia="s_musicVol"><button class="tog" id="tMusic"></button></span></div>
         <div class="row"><span data-i="s_sfx"></span><span class="ctl"><input type="range" id="vSfx" min="0" max="100" step="5" data-ia="s_sfxVol"><span></span></span></div>
+        <div class="btns"><button class="go alt" data-back data-i="m_back"></button></div>
+      </div>
+      <div class="panel" id="pMeta" hidden>
+        <div class="mtop"><div class="tabs" id="metaTabs"><button data-tab="tasks" data-i="t_tasks"></button><button data-tab="ach" data-i="t_ach"></button><button data-tab="shop" data-i="t_shop"></button></div><span id="crBal"></span></div>
+        <div id="metaBody"></div>
         <div class="btns"><button class="go alt" data-back data-i="m_back"></button></div>
       </div>
       <div class="panel" id="pAbout" hidden>

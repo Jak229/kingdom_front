@@ -86,3 +86,37 @@ button.go.warn{background:#b8462f;color:#fff}
 
 @media (max-height:460px){.card{padding:12px 18px 12px;gap:8px}.card h1{font-size:30px}.card p.tag{font-size:13px;line-height:1.35}.card p{line-height:1.4}
   .mbtns{display:grid;grid-template-columns:1fr 1fr;max-width:none}.mbtns button.go{font-size:16px;padding:8px 14px}.btns{bottom:-12px;margin:0 -18px -12px;padding:8px 18px 12px}}
+
+/* crystals, rewards and shop */
+.cr{display:inline-flex;align-items:center;gap:5px;font-family:var(--display);color:#bdeffa;white-space:nowrap}
+.cr::before{content:'';width:9px;height:9px;background:#6fd8f0;transform:rotate(45deg);box-shadow:inset 2px 2px 0 #d8f8ff,0 0 0 1px #14120c}
+button.go.meta{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px}
+.tabs button{font-family:var(--display);font-size:15px;background:transparent;color:var(--muted);border:2px solid var(--line);border-radius:3px;padding:6px 12px;cursor:pointer}
+.tabs button.sel{border-color:var(--accent);color:var(--accent);background:rgba(217,180,74,.1)}
+#crBal{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px}
+#metaBody{display:flex;flex-direction:column;gap:10px}
+#metaBody .note{font-size:13px}
+#metaBody .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+#metaBody .grid.skins{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+#metaBody .item{border:1px solid var(--line);background:rgba(255,255,240,.03);padding:8px 10px;display:flex;flex-direction:column;gap:5px}
+#metaBody .item.done{border-color:#4f6a3a;background:rgba(143,209,106,.06)}
+#metaBody .item.sel{border-color:var(--accent)}
+#metaBody .ih{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+#metaBody b{font-family:var(--display);font-weight:500;font-size:15px;color:var(--fg)}
+#metaBody small{font-size:12px;color:var(--muted);line-height:1.35}
+#metaBody .ok{font-family:var(--display);font-size:13px;color:#8fd16a;white-space:nowrap}
+#metaBody .bar{height:5px;background:#22261b}
+#metaBody .bar i{display:block;height:100%;background:var(--accent)}
+#metaBody .skin img{width:100%;max-width:120px;height:auto;image-rendering:pixelated;align-self:center}
+#metaBody button.buy{font-family:var(--display);font-size:14px;background:transparent;color:var(--fg);border:2px solid var(--line);border-radius:3px;padding:5px 10px;cursor:pointer;align-self:flex-start;display:inline-flex;gap:6px;align-items:center}
+#metaBody button.buy:not(:disabled):hover{border-color:var(--accent)}
+#metaBody button.buy:disabled{opacity:.5;cursor:default}
+#award{position:absolute;right:16px;top:44px;z-index:4;display:flex;flex-direction:column;gap:2px;max-width:260px;background:rgba(12,14,18,.9);border:1px solid var(--line);border-left:4px solid #6fd8f0;padding:7px 12px 8px;pointer-events:none}
+#award #awK{font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6fd8f0}
+#award b{font-family:var(--display);font-weight:500;font-size:16px;color:var(--fg)}
+#award.pop{animation:awardIn .35s ease-out}
+@keyframes awardIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){#award.pop{animation:none}}
+@media (max-height:460px){#award{top:36px;padding:5px 10px 6px}#award b{font-size:14px}.tabs button{font-size:13px;padding:4px 9px}}

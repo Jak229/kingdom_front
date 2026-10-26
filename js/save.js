@@ -30,7 +30,8 @@ export function saveGame(st) {
       })),
       shops: S.shops.map(sh => sh.tools),
       wild: S.wild.map(w => w.done),
-      people: S.people.map(m => [Math.round(m.x), m.role, m.campX, m.side, Math.round(m.off)]),
+      trees: S.trees.map(t => (t.st === 2 ? 2 : t.st === 1 ? 1 : 0)),
+      people: S.people.map(m => [Math.round(m.x), m.role, m.campX, m.side, Math.round(m.off), m.vet ? 1 : 0]),
       squad: S.squad ? {x: Math.round(S.squad.x), hp: S.squad.hp, maxHp: S.squad.maxHp} : null
     })
   );
@@ -54,12 +55,19 @@ export function loadGame(sv) {
   n.spots.forEach((sp, i) => Object.assign(sp, sv.spots[i] || {}));
   n.shops.forEach((sh, i) => (sh.tools = sv.shops[i] || 0));
   n.wild.forEach((w, i) => (w.done = !!sv.wild[i]));
-  n.people = sv.people.map(([x, role, campX, side, off]) => {
+  n.people = sv.people.map(([x, role, campX, side, off, vet]) => {
     const m = mkPerson(x, role, campX);
     m.side = side;
     m.off = off;
+    if (vet) m.vet = true;
     return m;
   });
+  // saves from before the forest: trees standing on anything already built or ordered are gone
+  if (sv.trees) n.trees.forEach((t, i) => (t.st = sv.trees[i] || 0));
+  else
+    for (const t of n.trees)
+      if (n.spots.some(sp => (sp.level > 0 || sp.paid) && Math.abs(sp.x - t.x) < 60)) t.st = 2;
+  for (const t of n.trees) if (t.st === 2) t.chop = 1;
   if (n.wild.some(w => w.type === 'dog' && w.done))
     n.dog = {x: n.player.x - 40, dir: 1, anim: 0, mode: 'follow', digCd: 30, barkCd: 0, t: 0, moving: false};
   if (sv.squad)
