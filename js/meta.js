@@ -96,6 +96,12 @@ function load() {
   p.own.base = 1;
   if (!SKINS.some(s => s.id === p.skin)) p.skin = 'base';
   p.reserve = p.reserve || {};
+  // for testing outside CrazyGames: ?cr=500 in the address sets the crystal balance
+  const t = !CG.active && /[?&]cr=(\d+)/.exec(location.search);
+  if (t) {
+    p.cr = +t[1];
+    CG.setItem(KEY, JSON.stringify(p));
+  }
   return p;
 }
 export const PROF = load();
