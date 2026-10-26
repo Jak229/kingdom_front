@@ -19,11 +19,13 @@ import {
 import {hitSquad, startConvoy} from './support.js';
 import {saveGame} from '../save.js';
 import {gameOver} from '../ui/end.js';
+import {achieve, ev} from '../meta.js';
 import {SP} from '../sprites.js';
 
 /* ---------- enemies ---------- */
 export function startNight() {
   S.night = true;
+  S.nightHits = 0;
   S.phaseT = 0;
   S.nightT = 0;
   S.queue = [];
@@ -103,7 +105,15 @@ export function startNight() {
 export function startDay() {
   S.night = false;
   S.phaseT = 0;
+  // the night is survived: counters for achievements and today's tasks
+  ev('night');
+  if (!S.nightHits) {
+    ev('clean');
+    if (S.day >= 3) achieve('clean');
+  }
+  S.nightHits = 0;
   S.day++;
+  if (S.day >= 7) achieve('day7');
   sfx('radio', null, {v: 'dawn', d: 2.2});
   for (const e of S.enemies)
     if (!e.dead) {
@@ -319,6 +329,7 @@ function touchPlayer(e) {
   e.loot += stolen;
   for (let i = 0; i < lose - stolen; i++) dropCoin(p.x, GY - 30);
   p.hitCd = 1.6;
+  S.nightHits = (S.nightHits || 0) + 1;
   sfx('hitPlayer', p.x);
   if (!e.boss) e.flee = true;
   toast(tr(e.boss ? 'hitWalker' : 'hitRobot', tokN(lose)), true);
@@ -343,6 +354,7 @@ export function bombBoom(x, full, self) {
       S.coins -= lose;
       for (let i = 0; i < lose; i++) dropCoin(p.x, GY - 30);
       p.hitCd = 1.6;
+      S.nightHits = (S.nightHits || 0) + 1;
       sfx('hitPlayer', p.x);
       toast(tr('hitRobot', tokN(lose)), true);
     }

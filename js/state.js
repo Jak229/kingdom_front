@@ -1,9 +1,14 @@
 /* The game state S (everything that is saved or simulated), the input flags and a fresh state for a new front.
    S is replaced on a new game; other modules read it as a live binding and replace it with setS(). */
 import {C, PORTAL} from './config.js';
-import {rnd} from './util.js';
+import {rnd, rng} from './util.js';
 
 export let S = null;
+// forest belts (distance from HQ) that hold the second and third rings of defences
+export const FOREST = [
+  [720, 1070],
+  [1250, 1610]
+];
 export const input = {left: false, right: false, pay: false, fast: false};
 
 export function mkPerson(x, role, campX) {
@@ -127,6 +132,21 @@ export function newState(front) {
     w.done = false;
     if (front % 2 === 0) w.x = 2 * C - w.x;
   }
+  // the forest round the base: outer positions stand among trees that sappers have to clear first
+  s.trees = [];
+  const rf = rng(front * 131 + 7);
+  for (const sd of [-1, 1])
+    for (const [a, b] of FOREST)
+      for (let d = a + rf() * 20; d < b; d += 30 + rf() * 18)
+        s.trees.push({
+          x: Math.round(C + sd * d),
+          pine: rf() < 0.45,
+          f: rf() < 0.8 ? 0 : 1,
+          flip: rf() < 0.5,
+          st: 0,
+          chop: 0,
+          pending: 0
+        });
   for (const cx of s.camps)
     for (let i = 0; i < 3; i++) s.people.push(mkPerson(cx + rnd(-60, 60), 'vagrant', cx));
   s.people.push(mkPerson(C - 320, 'vagrant', s.camps[0]));

@@ -9,6 +9,7 @@ import {spawnEnemy, startDay, startNight, updEnemy} from './enemies.js';
 import {updFoeFx, updMortar, updShells, updSniper, updTurret} from './defences.js';
 import {updAtgm, updBank, updConvoy, updDog, updMissiles, updSquad, updWild} from './support.js';
 import {showEnd} from '../ui/end.js';
+import {ev} from '../meta.js';
 
 /* ---------- main step ---------- */
 export function step(dt) {
@@ -130,6 +131,7 @@ export function step(dt) {
     } else if (Math.abs(c.x - p.x) < 22 && S.coins < PURSE) {
       c.taken = true;
       S.coins++;
+      ev('coin');
     }
   }
   S.ground = S.ground.filter(c => !c.taken);
@@ -163,11 +165,14 @@ export function nextFrontState(o) {
   n.kills = o.kills;
   let g = 0,
     b = 0;
-  for (const m of o.people) {
+  // specialists bought with crystals are the first to come along
+  const team = [...o.people].sort((x, y) => (y.vet ? 1 : 0) - (x.vet ? 1 : 0));
+  for (const m of team) {
     if (m.role === 'guard' && g < 4) g++;
     else if (m.role === 'builder' && b < 2) b++;
     else continue;
     const p = mkPerson(C + rnd(-90, 90), m.role, C);
+    if (m.vet) p.vet = true;
     if (m.role === 'guard') p.side = pickSide(n, p);
     n.people.push(p);
   }

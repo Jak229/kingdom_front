@@ -433,6 +433,23 @@ export const AU = {
       this.tone(784, 0.6, 'sine', 0.04, 0.01, 0.08, null, o);
       this.tone(1047, 0.7, 'sine', 0.035, 0.01, 0.2, null, o);
     },
+    // a felled tree: the trunk creaks, leaves rush, then the thud
+    treeFall(x) {
+      const o = this.at(x, 1);
+      if (!o) return;
+      this.tone(260, 0.5, 'sawtooth', 0.025, 0.05, 0, 110, o);
+      this.burst(0.5, 'bandpass', 2600, 0.05, 0.25, o, 0.8);
+      this.burst(0.35, 'lowpass', 220, 0.2, 0.62, o);
+      this.tone(70, 0.3, 'sine', 0.09, 0.003, 0.62, 45, o);
+    },
+    // crystals for an achievement or a task: a short bright arpeggio, not tied to a place
+    award() {
+      if (!this.ok('award', 0.6)) return;
+      const o = this.at(null, 0.9),
+        t = this.ctx.currentTime;
+      [72, 79, 84, 88].forEach((m, i) => this.pluck(mtof(m), t + i * 0.08, 0.07, o, 1.6));
+      this.tone(2093, 0.5, 'sine', 0.02, 0.01, 0.34, null, o);
+    },
     hqUp(x) {
       const o = this.at(x, 1);
       if (!o) return;
@@ -1090,6 +1107,14 @@ export const AU = {
   build(x) {
     if (!this.ok('build', 0.34)) return;
     this.fx.hammer.call(this, x);
+  },
+  // an axe in wood: a dull knock rather than the hammer's ring
+  chop(x) {
+    if (!this.ok('build', 0.42)) return;
+    const o = this.at(x, 0.8);
+    if (!o) return;
+    this.burst(0.05, 'bandpass', 900, 0.07, 0, o, 1.2);
+    this.tone(170, 0.06, 'triangle', 0.05, 0.001, 0, 120, o);
   },
   // ---------- continuous voices: engines, drone buzz, portal hum ----------
   mkEngine() {
