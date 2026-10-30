@@ -1,7 +1,7 @@
 /* Vagrants, soldiers, builders and farmers: wandering, working, shooting, getting hurt. */
 import {C, DEFS, GY, SHOPS, season} from '../config.js';
 import {rnd} from '../util.js';
-import {S} from '../state.js';
+import {S, mod} from '../state.js';
 import {completeSpot, dropCoin, fire, outerWall, pickSide, puff, rocketUp, sfx} from './rules.js';
 import {achieve, ev} from '../meta.js';
 
@@ -161,7 +161,7 @@ export function updPerson(m, dt) {
           }
       }
       const sp = m.task,
-        pace = m.vet ? 1.75 : 1;
+        pace = (m.vet ? 1.75 : 1) * (mod('blitz') ? 2 : 1);
       if (sp && !sp.type) {
         // chopping: stand beside the trunk on the base side
         m.tx = sp.x + (sp.x < C ? 1 : -1) * (10 + m.off * 0.2);

@@ -29,7 +29,8 @@ export function mkPerson(x, role, campX) {
     working: false
   };
 }
-export function newState(front) {
+// seed: trees of the operation of the day are drawn by the date instead of the front
+export function newState(front, seed) {
   front = front || 1;
   const s = {
     front,
@@ -134,7 +135,7 @@ export function newState(front) {
   }
   // the forest round the base: outer positions stand among trees that sappers have to clear first
   s.trees = [];
-  const rf = rng(front * 131 + 7);
+  const rf = rng(seed || front * 131 + 7);
   for (const sd of [-1, 1])
     for (const [a, b] of FOREST)
       for (let d = a + rf() * 20; d < b; d += 30 + rf() * 18)
@@ -153,6 +154,9 @@ export function newState(front) {
   s.people.push(mkPerson(C + 300, 'vagrant', s.camps[1]));
   return s;
 }
+
+// the special rule of today's operation is in force (see logic/daily.js)
+export const mod = id => !!(S && S.daily && S.daily.m === id);
 
 export function setS(v) {
   S = v;

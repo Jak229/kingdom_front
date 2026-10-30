@@ -1,16 +1,21 @@
 /* Save at dawn, like the original, and load it back (CrazyGames cloud data or localStorage). */
 import {mkPerson, newState} from './state.js';
+import {newDaily} from './logic/daily.js';
 import {CG} from './crazygames.js';
 
 /* ---------- save at dawn, like the original ---------- */
-const SAVE_KEY = 'kg-front-save-v1';
+const SAVE_KEY = 'kg-front-save-v1',
+  // the operation of the day has its own slot, so it never overwrites the campaign
+  DAILY_KEY = 'kg-daily-save-v1';
 export function saveGame(st) {
   const S = st || window.__kg.S;
   return CG.setItem(
-    SAVE_KEY,
+    S.daily ? DAILY_KEY : SAVE_KEY,
     JSON.stringify({
       v: 1,
       front: S.front,
+      foe: S.foe,
+      daily: S.daily,
       coins: S.coins,
       day: S.day,
       hires: S.hires,
@@ -36,19 +41,23 @@ export function saveGame(st) {
     })
   );
 }
-export function readSave() {
+// daily: the saved operation of the day d (one from another day is of no use)
+export function readSave(daily, d) {
   try {
-    const s = JSON.parse(CG.getItem(SAVE_KEY) || 'null');
-    return s && s.v === 1 ? s : null;
+    const s = JSON.parse(CG.getItem(daily ? DAILY_KEY : SAVE_KEY) || 'null');
+    if (!s || s.v !== 1) return null;
+    return !daily || (s.daily && s.daily.d === d) ? s : null;
   } catch (e) {
     return null;
   }
 }
-export function clearSave() {
-  CG.removeItem(SAVE_KEY);
+export function clearSave(daily) {
+  CG.removeItem(daily ? DAILY_KEY : SAVE_KEY);
 }
 export function loadGame(sv) {
-  const n = newState(sv.front || 1);
+  const n = sv.daily ? newDaily(sv.daily.d) : newState(sv.front || 1);
+  n.front = sv.front || 1;
+  if (sv.daily) n.daily = {...sv.daily};
   for (const k of ['coins', 'day', 'hires', 'kills', 'buff', 'portalHp', 'portalDead'])
     if (sv[k] != null) n[k] = sv[k];
   Object.assign(n.player, sv.player);

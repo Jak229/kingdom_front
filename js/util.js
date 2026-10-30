@@ -33,3 +33,9 @@ export function rng(seed) {
     return (q >>> 8) / 16777216;
   };
 }
+// a stable number from a string (FNV-1a), for things drawn by the date
+export function hashStr(t) {
+  let h = 2166136261;
+  for (const ch of t) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return h >>> 0;
+}

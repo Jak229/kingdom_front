@@ -194,8 +194,9 @@ export function syncAwards() {
   }
   const a = AWARDS.shift();
   cur = {until: performance.now() + 3600};
-  $('awK').textContent = tr(a.kind === 'ach' ? 'aw_ach' : 'aw_task');
-  $('awT').textContent = a.kind === 'ach' ? tr('ach_' + a.id) : tr('task_' + a.id, a.n);
+  $('awK').textContent = tr(a.kind === 'ach' ? 'aw_ach' : a.kind === 'daily' ? 'm_daily' : 'aw_task');
+  $('awT').textContent =
+    a.kind === 'ach' ? tr('ach_' + a.id) : a.kind === 'daily' ? tr('d_goal', a.n) : tr('task_' + a.id, a.n);
   $('awR').textContent = '';
   $('awR').appendChild(crys('+' + a.cr));
   box.hidden = false;

@@ -14,6 +14,8 @@ import {$} from './dom.js';
 import {layoutCorner} from './touch.js';
 import {syncToggles} from './settings.js';
 import {deployReserve, metaLabel, renderMeta} from './meta.js';
+import {againDaily, dailyLabel, renderDaily} from './daily.js';
+import {dailyStart} from '../meta.js';
 
 // menu: the same card is the title screen and the pause screen
 export const inGame = () => !!(S && S.running && !S.over && !S.won);
@@ -30,6 +32,9 @@ function refreshMenu() {
     st = $('start'),
     c = $('cont');
   $('resume').hidden = !ig;
+  // the operation of the day starts from the title screen only
+  $('bDaily').hidden = ig;
+  dailyLabel();
   c.hidden = !sv;
   if (sv) c.textContent = tr('m_contSave', saveLabel(sv));
   const pending = ig && performance.now() - confirmT < 6000;
@@ -42,7 +47,7 @@ function refreshMenu() {
 }
 function showPanel(id) {
   panel = id;
-  for (const p of ['pMain', 'pHelp', 'pSet', 'pAbout', 'pMeta']) $(p).hidden = p !== id;
+  for (const p of ['pMain', 'pHelp', 'pSet', 'pAbout', 'pMeta', 'pDaily']) $(p).hidden = p !== id;
   $('menu').firstElementChild.scrollTop = 0;
 }
 export function syncCorner() {
@@ -83,6 +88,7 @@ export function applyLang() {
   $('ver').textContent = tr('a_ver', VERSION);
   metaLabel();
   if (!$('pMeta').hidden) renderMeta();
+  if (!$('pDaily').hidden) renderDaily();
   syncToggles();
   refreshMenu();
   if (S) {
@@ -91,7 +97,7 @@ export function applyLang() {
   }
 }
 
-function begin(sv, next) {
+export function begin(sv, next) {
   $('menu').hidden = true;
   $('end').hidden = true;
   syncCorner();
@@ -109,8 +115,15 @@ function begin(sv, next) {
     sc.camX = clamp(S.player.x - W / 2, 0, WORLD - W);
   }
   S.tut =
-    !next && !sv && S.front === 1 && S.day === 1 && SET.tut !== false ? {i: 0, t: 0, x0: S.player.x} : null;
-  if (!S.tut) toast(next ? tr('beginNext', roman(S.front), S.front) : sv ? tr('beginCont') : tr('beginNew'));
+    !next && !sv && !S.daily && S.front === 1 && S.day === 1 && SET.tut !== false
+      ? {i: 0, t: 0, x0: S.player.x}
+      : null;
+  // a new try at the operation of the day remembers the record it has to beat
+  if (S.daily && !sv) {
+    S.daily.prev = dailyStart(S.daily.d);
+    toast(tr('beginDaily', tr('mod_' + S.daily.m), tr('modd_' + S.daily.m)));
+  } else if (!S.tut)
+    toast(next ? tr('beginNext', roman(S.front), S.front) : sv ? tr('beginCont') : tr('beginNew'));
 }
 
 export function initMenu() {
@@ -122,6 +135,10 @@ export function initMenu() {
   $('bHelp').addEventListener('click', () => showPanel('pHelp'));
   $('bSet').addEventListener('click', () => showPanel('pSet'));
   $('bAbout').addEventListener('click', () => showPanel('pAbout'));
+  $('bDaily').addEventListener('click', () => {
+    showPanel('pDaily');
+    renderDaily();
+  });
   $('bMeta').addEventListener('click', () => {
     showPanel('pMeta');
     renderMeta();
@@ -171,8 +188,11 @@ export function initMenu() {
   // between operations is the natural break for a CrazyGames midgame ad (no-op elsewhere)
   $('restart').addEventListener('click', async () => {
     await CG.midgame();
-    clearSave();
-    setS(newState());
+    if (S.daily) againDaily();
+    else {
+      clearSave();
+      setS(newState());
+    }
     begin();
   });
   $('nextFront').addEventListener('click', async () => {

@@ -1,6 +1,6 @@
 /* World size, seasons and the rule tables: buildings (DEFS), shops, vehicles and wild-land objects.
    Names and descriptions are attached by i18n/index.js, so this file holds numbers only. */
-import {S} from './state.js';
+import {S, mod} from './state.js';
 
 export const W = 960,
   H = 540,
@@ -30,10 +30,10 @@ export function season() {
   return SEASONS[seasonIdx(S ? S.day : 1)];
 }
 export function dayLen() {
-  return season().day;
+  return season().day * (mod('blitz') ? 0.7 : 1);
 }
 export function nightLen() {
-  return season().night;
+  return season().night * (mod('long') ? 1.35 : 1);
 }
 export const VEH = {
   jeep: {speed: 140, fast: 250},
@@ -77,4 +77,4 @@ export const SHOPS = {
   agro: {role: 'farmer', cost: 3, color: 0x6b5a35}
 };
 
-export const VERSION = 23;
+export const VERSION = 24;

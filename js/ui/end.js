@@ -9,7 +9,7 @@ import {CG} from '../crazygames.js';
 import {adFailText} from './adbutton.js';
 import {PURSE} from '../config.js';
 import {syncCorner} from './menu.js';
-import {achieve, ev} from '../meta.js';
+import {achieve, dailyEnd, dailyRec, ev} from '../meta.js';
 
 export function gameOver() {
   if (S.over) return;
@@ -17,8 +17,13 @@ export function gameOver() {
   showEnd(false);
 }
 export function showEnd(won) {
-  if (won) {
-    ev('victory');
+  if (won) ev('victory');
+  if (S.daily) {
+    // the operation of the day has no next front: it ends here and goes into today's record
+    clearSave(true);
+    dailyEnd(S.daily.d, S.day - 1, S.kills, won);
+    if (won) CG.happytime();
+  } else if (won) {
     if (S.front + 1 >= 3) achieve('front3');
     S.nextFront = nextFrontState(S);
     saveGame(S.nextFront);
@@ -34,10 +39,10 @@ export function showEnd(won) {
 export function fillEnd() {
   const won = S.endWon,
     el = id => document.getElementById(id);
-  el('nextFront').hidden = !won;
-  el('bonus').hidden = !won || !CG.active || !!S.bonusGot;
+  el('nextFront').hidden = !won || !!S.daily;
+  el('bonus').hidden = !won || !!S.daily || !CG.active || !!S.bonusGot;
   el('bonus').textContent = tr('e_bonus', BONUS);
-  el('restart').classList.toggle('alt', won);
+  el('restart').classList.toggle('alt', won && !S.daily);
   el('endStamp').textContent = tr(won ? 'e_stampWin' : 'e_stampLose');
   const h = el('endTitle'),
     sp = document.createElement('span');
@@ -47,7 +52,7 @@ export function fillEnd() {
   let t = won
     ? tr(S.wonBy === 'portals' ? 'e_portals' : 'e_rocket', S.day, S.kills)
     : tr('e_lose', S.day, S.kills);
-  if (won) {
+  if (won && !S.daily) {
     const c = S.nextFront.carried;
     t += tr(
       'e_carry',
@@ -61,6 +66,14 @@ export function fillEnd() {
     );
   }
   if (won && S.bonusGot) t += ' ' + tr('e_bonusGot', BONUS);
+  if (S.daily) {
+    const n = S.day - 1,
+      r = dailyRec(S.daily.d);
+    t += ' ' + tr('e_daily', n);
+    if (n > (S.daily.prev || 0)) t += ' ' + tr('e_dailyRec');
+    else if (r) t += ' ' + tr('e_dailyBest', r.best);
+  }
+  el('restart').textContent = tr(S.daily ? 'd_again' : 'm_new');
   el('endText').textContent = t;
 }
 // rewarded ad on the victory card: extra coins carried to the next front
