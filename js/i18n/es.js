@@ -67,6 +67,7 @@ export default {
     ' Frente {0} asegurado. Con el comandante viajan al frente {1}: soldados {2}, zapadores {3}{4}. Allí el enemigo es más fuerte.',
   e_dog: ', el perro militar',
   e_next: 'Siguiente frente',
+  e_revive: 'Volver al amanecer · día {0}',
   e_bonus: 'Ver anuncio: +{0} fichas',
   e_bonusGot: 'Bonus por anuncio: +{0} fichas.',
   ad_btn: 'Ver anuncio: +{0}',

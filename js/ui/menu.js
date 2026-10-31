@@ -6,7 +6,7 @@ import {LANG, setLang, tr} from '../i18n/index.js';
 import {clamp, roman} from '../util.js';
 import {S, newState, setS} from '../state.js';
 import {toast} from '../logic/rules.js';
-import {clearSave, loadGame, readSave} from '../save.js';
+import {clearSave, loadGame, readSave, saveGame} from '../save.js';
 import {fillEnd, initEnd} from './end.js';
 import {AU} from '../audio.js';
 import {CG} from '../crazygames.js';
@@ -109,6 +109,8 @@ export function begin(sv, next) {
   S.running = true;
   S.paused = false;
   deployReserve();
+  // a new operation is saved at once, so even a first-night defeat can go back to the first morning
+  if (!sv) saveGame();
   const sc = window.__kg && window.__kg.scene;
   if (sc) {
     sc.showBanner(S.day);
@@ -194,6 +196,13 @@ export function initMenu() {
       setS(newState());
     }
     begin();
+  });
+  // back to the last dawn after a defeat: the night is replayed, the operation goes on
+  $('revive').addEventListener('click', async () => {
+    const sv = S.reviveSv;
+    if (!sv) return;
+    await CG.midgame();
+    begin(sv);
   });
   $('nextFront').addEventListener('click', async () => {
     const nx = S.nextFront;

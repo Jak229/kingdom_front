@@ -3,7 +3,7 @@ import {tr} from '../i18n/index.js';
 import {roman} from '../util.js';
 import {S} from '../state.js';
 import {nextFrontState} from '../logic/step.js';
-import {clearSave, saveGame} from '../save.js';
+import {clearSave, readSave, saveGame} from '../save.js';
 import {AU} from '../audio.js';
 import {CG} from '../crazygames.js';
 import {adFailText} from './adbutton.js';
@@ -18,9 +18,11 @@ export function gameOver() {
 }
 export function showEnd(won) {
   if (won) ev('victory');
+  // a defeat keeps the dawn save: the commander can go back to that morning instead of starting over
+  S.reviveSv = won ? null : readSave(!!S.daily, S.daily && S.daily.d);
   if (S.daily) {
     // the operation of the day has no next front: it ends here and goes into today's record
-    clearSave(true);
+    if (won) clearSave(true);
     dailyEnd(S.daily.d, S.day - 1, S.kills, won);
     if (won) CG.happytime();
   } else if (won) {
@@ -28,7 +30,7 @@ export function showEnd(won) {
     S.nextFront = nextFrontState(S);
     saveGame(S.nextFront);
     CG.happytime();
-  } else clearSave();
+  }
   S.endWon = won;
   fillEnd();
   AU.jingle(won);
@@ -40,9 +42,12 @@ export function fillEnd() {
   const won = S.endWon,
     el = id => document.getElementById(id);
   el('nextFront').hidden = !won || !!S.daily;
+  const rv = el('revive');
+  rv.hidden = !S.reviveSv;
+  if (S.reviveSv) rv.textContent = tr('e_revive', roman(S.reviveSv.day), S.reviveSv.day);
   el('bonus').hidden = !won || !!S.daily || !CG.active || !!S.bonusGot;
   el('bonus').textContent = tr('e_bonus', BONUS);
-  el('restart').classList.toggle('alt', won && !S.daily);
+  el('restart').classList.toggle('alt', (won && !S.daily) || !!S.reviveSv);
   el('endStamp').textContent = tr(won ? 'e_stampWin' : 'e_stampLose');
   const h = el('endTitle'),
     sp = document.createElement('span');
