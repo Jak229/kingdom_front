@@ -365,5 +365,12 @@ export default {
   ach_daily5: 'Wachhabender',
   achd_daily5: 'Erreiche an 5 verschiedenen Tagen das erste Ziel der Tagesoperation.',
   h_daily:
-    'Die Tagesoperation (Hauptmenü) ist für alle gleich und wechselt täglich: eigene Karte, Roboter einer anderen Front und eine Sonderregel. 3, 5 und 8 überstandene Nächte bringen einmal am Tag Kristalle. Sie wird getrennt gespeichert und berührt deine Hauptoperation nicht.'
+    'Die Tagesoperation (Hauptmenü) ist für alle gleich und wechselt täglich: eigene Karte, Roboter einer anderen Front und eine Sonderregel. 3, 5 und 8 überstandene Nächte bringen einmal am Tag Kristalle. Sie wird getrennt gespeichert und berührt deine Hauptoperation nicht.',
+  aw_login: 'Login-Belohnung',
+  st_day: 'Tag {0} von {1}',
+  st_title: 'Login-Belohnung · Tag {0} von {1}',
+  e_tomorrow: 'Morgen: +{0} Kristalle fürs Einloggen und eine neue Tagesoperation: „{1}“.',
+  q_daily: 'Täglich',
+  d_inGame:
+    'Deine laufende Operation wartet: Setze sie im Hauptmenü mit „Weiter“ ab ihrem letzten Morgengrauen fort.'
 };

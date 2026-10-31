@@ -9,7 +9,8 @@ import {CG} from '../crazygames.js';
 import {adFailText} from './adbutton.js';
 import {PURSE} from '../config.js';
 import {syncCorner} from './menu.js';
-import {achieve, dailyEnd, dailyRec, ev} from '../meta.js';
+import {achieve, dailyEnd, dailyRec, ev, streakNext, today} from '../meta.js';
+import {dailyPlan} from '../logic/daily.js';
 
 export function gameOver() {
   if (S.over) return;
@@ -78,6 +79,8 @@ export function fillEnd() {
     if (n > (S.daily.prev || 0)) t += ' ' + tr('e_dailyRec');
     else if (r) t += ' ' + tr('e_dailyBest', r.best);
   }
+  // a reason to come back tomorrow
+  if (!won) t += ' ' + tr('e_tomorrow', streakNext(), tr('mod_' + dailyPlan(today(1)).m));
   el('restart').textContent = tr(S.daily ? 'd_again' : 'm_new');
   el('endText').textContent = t;
 }

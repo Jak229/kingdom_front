@@ -46,6 +46,7 @@ import {LAYERS, SEASON_TINT, makeLayers} from './render/layers.js';
 import {$} from './ui/dom.js';
 import {TOUCH, buzz, touch} from './ui/touch.js';
 import {TUT_BOTTOM, syncTut} from './ui/tutorial.js';
+import {autoStart, syncQuick} from './ui/menu.js';
 import {toggleSound} from './ui/settings.js';
 import {syncAdButton} from './ui/adbutton.js';
 import {PROF} from './meta.js';
@@ -251,6 +252,7 @@ export class Main extends Phaser.Scene {
     };
     CG.onHush(h => AU.setHush(h));
     CG.loaded();
+    autoStart();
   }
   // tex: another texture with the same frame names (a vehicle skin)
   spr(pool, key, frame, x, y, flip, tint, alpha, fill, tex) {
@@ -373,6 +375,7 @@ export class Main extends Phaser.Scene {
     CG.setPlaying(S.running && !S.paused && !S.over && !S.won && $('menu').hidden);
     syncAdButton();
     syncTut();
+    syncQuick();
     syncAwards();
     this.events_(dt);
     this.makeSigns();

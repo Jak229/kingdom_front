@@ -75,8 +75,10 @@ export const UNITS = [
   {id: 'qm', role: 'farmer', cost: 6}
 ];
 
-export function today() {
-  const d = new Date();
+// the local calendar date, or the one off days away
+export function today(off) {
+  const n = new Date(),
+    d = new Date(n.getFullYear(), n.getMonth(), n.getDate() + (off || 0));
   return (
     d.getFullYear() +
     '-' +
@@ -180,6 +182,25 @@ export function ev(k, n) {
   for (const a of ACH) if (a.stat === k && !PROF.ach[a.id] && PROF.st[k] >= a.need) achieve(a.id);
   changed();
 }
+// login reward: crystals for each day of a run of days in a row, the 7th is the big one, then it starts over
+export const STREAK = [5, 6, 8, 10, 12, 15, 30];
+// the first visit of a day pays out; returns the day of the run (1–7) or 0 if today is already paid
+export function checkStreak() {
+  const t = today(),
+    s = PROF.streak || {};
+  if (s.last === t) return 0;
+  const n = s.last === today(-1) ? (s.n % STREAK.length) + 1 : 1;
+  PROF.streak = {last: t, n};
+  award('login', 'n', STREAK[n - 1], n);
+  changed();
+  return n;
+}
+// what coming back tomorrow pays
+export function streakNext() {
+  const s = PROF.streak;
+  return STREAK[s && s.last === today() ? s.n % STREAK.length : 0];
+}
+
 // operation of the day: [nights held, crystals], each goal paid once a day
 export const DAILY_GOALS = [
   [3, 8],

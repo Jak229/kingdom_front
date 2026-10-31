@@ -77,4 +77,4 @@ export const SHOPS = {
   agro: {role: 'farmer', cost: 3, color: 0x6b5a35}
 };
 
-export const VERSION = 24;
+export const VERSION = 25;

@@ -1,12 +1,12 @@
 /* Operation of the day in the menu: the button on the title screen and its panel (rule, robots, goals, record). */
 import {tr} from '../i18n/index.js';
 import {roman} from '../util.js';
-import {setS} from '../state.js';
+import {S, setS} from '../state.js';
 import {dailyPlan, newDaily} from '../logic/daily.js';
 import {DAILY_GOALS, PROF, dailyRec, msToNewTasks} from '../meta.js';
 import {clearSave, readSave} from '../save.js';
 import {$} from './dom.js';
-import {begin} from './menu.js';
+import {begin, closeMenu, inGame} from './menu.js';
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -56,17 +56,29 @@ export function renderDaily() {
   box.appendChild(g);
   box.appendChild(el('p', 'note', r.runs || r.best ? tr('d_best', r.best, r.kills) : tr('d_bestNone')));
   if (PROF.dbest) box.appendChild(el('p', 'note', tr('d_bestAll', PROF.dbest)));
+  // opened from the play screen during a campaign: that operation waits at its last dawn
+  const ig = inGame(),
+    here = ig && !!S.daily;
+  if (ig && !here) box.appendChild(el('p', 'note', tr('d_inGame')));
   const ms = msToNewTasks();
   box.appendChild(el('p', 'note', tr('d_newIn', Math.floor(ms / 3.6e6), Math.floor((ms % 3.6e6) / 6e4))));
   // play buttons sit in the panel's bottom bar, next to Back, so they stay in view on a phone
   const bt = $('dailyBtns');
   bt.textContent = '';
-  if (sv) {
+  if (here) {
+    const c = el('button', 'go', tr('m_resume'));
+    c.onclick = closeMenu;
+    bt.appendChild(c);
+  } else if (sv) {
     const c = el('button', 'go', tr('d_cont', roman(sv.day), sv.day));
     c.onclick = () => begin(sv);
     bt.appendChild(c);
   }
-  const go = el('button', 'go' + (sv ? ' alt' : ''), tr(sv ? 'd_restart' : r.runs ? 'd_again' : 'd_play'));
+  const go = el(
+    'button',
+    'go' + (sv || here ? ' alt' : ''),
+    tr(sv || here ? 'd_restart' : r.runs ? 'd_again' : 'd_play')
+  );
   go.onclick = () => {
     clearSave(true);
     begin(null, newDaily());

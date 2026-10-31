@@ -363,5 +363,12 @@ export default {
   ach_daily5: 'Oficial de guardia',
   achd_daily5: 'Cumple el primer objetivo de la operación del día en 5 días distintos.',
   h_daily:
-    'La operación del día (menú principal) es la misma para todos y cambia cada día: su propio mapa, robots de otro frente y una regla especial. Sobrevivir 3, 5 y 8 noches da cristales una vez al día. Se guarda aparte y no toca tu operación principal.'
+    'La operación del día (menú principal) es la misma para todos y cambia cada día: su propio mapa, robots de otro frente y una regla especial. Sobrevivir 3, 5 y 8 noches da cristales una vez al día. Se guarda aparte y no toca tu operación principal.',
+  aw_login: 'Premio por entrar',
+  st_day: 'Día {0} de {1}',
+  st_title: 'Premio por entrar · día {0} de {1}',
+  e_tomorrow: 'Mañana: +{0} cristales por entrar y una nueva operación del día, «{1}».',
+  q_daily: 'Diaria',
+  d_inGame:
+    'Tu operación actual esperará: continúala desde su último amanecer con «Continuar» en el menú principal.'
 };

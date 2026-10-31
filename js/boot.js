@@ -7,6 +7,7 @@ import {initSettings} from './ui/settings.js';
 import {applyLang, initMenu, syncCorner} from './ui/menu.js';
 import {initAdButton} from './ui/adbutton.js';
 import {initMeta} from './ui/meta.js';
+import {checkStreak} from './meta.js';
 
 initTouch();
 initTutorialPanel();
@@ -14,6 +15,8 @@ initSettings();
 initMenu();
 initAdButton();
 initMeta();
+// the first visit of the day pays the login reward (shown as an award once the game is up)
+checkStreak();
 applyLang();
 setTouchMode(matchMedia('(pointer:coarse)').matches);
 syncCorner();

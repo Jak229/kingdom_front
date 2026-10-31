@@ -355,5 +355,12 @@ export default {
   ach_daily5: 'Duty officer',
   achd_daily5: 'Reach the first goal of the operation of the day on 5 different days.',
   h_daily:
-    "The operation of the day (main menu) is the same for everyone and changes daily: its own map, another front's robots and a special rule. Surviving 3, 5 and 8 nights earns crystals once a day. It is saved separately and never touches your main operation."
+    "The operation of the day (main menu) is the same for everyone and changes daily: its own map, another front's robots and a special rule. Surviving 3, 5 and 8 nights earns crystals once a day. It is saved separately and never touches your main operation.",
+  aw_login: 'Login reward',
+  st_day: 'Day {0} of {1}',
+  st_title: 'Login reward · day {0} of {1}',
+  e_tomorrow: 'Tomorrow: +{0} crystals for logging in and a new operation of the day, “{1}”.',
+  q_daily: 'Daily',
+  d_inGame:
+    'Your current operation will wait: continue it from its last dawn with “Continue” in the main menu.'
 };

@@ -13,9 +13,9 @@ import {CG} from '../crazygames.js';
 import {$} from './dom.js';
 import {layoutCorner} from './touch.js';
 import {syncToggles} from './settings.js';
-import {deployReserve, metaLabel, renderMeta} from './meta.js';
+import {deployReserve, metaLabel, renderMeta, renderStreak} from './meta.js';
 import {againDaily, dailyLabel, renderDaily} from './daily.js';
-import {dailyStart} from '../meta.js';
+import {PROF, dailyRec, dailyStart, onChange} from '../meta.js';
 
 // menu: the same card is the title screen and the pause screen
 export const inGame = () => !!(S && S.running && !S.over && !S.won);
@@ -35,6 +35,8 @@ function refreshMenu() {
   // the operation of the day starts from the title screen only
   $('bDaily').hidden = ig;
   dailyLabel();
+  $('streak').hidden = ig;
+  renderStreak();
   c.hidden = !sv;
   if (sv) c.textContent = tr('m_contSave', saveLabel(sv));
   const pending = ig && performance.now() - confirmT < 6000;
@@ -53,19 +55,35 @@ function showPanel(id) {
 export function syncCorner() {
   const play = $('menu').hidden && $('end').hidden;
   $('mbtn').hidden = !play;
+  syncQuick();
   $('touch').hidden = !play;
   layoutCorner();
 }
-export function openMenu() {
+// quick buttons show during play only, and stay out of the way during the first-day tutorial (checked every frame)
+export function syncQuick() {
+  const on = inGame() && $('menu').hidden && $('end').hidden && !S.tut,
+    q = $('quick');
+  if (q.hidden !== on) return;
+  q.hidden = !on;
+  if (on) quickLabels();
+}
+// the shop and the operation of the day open from the play screen straight on their panel
+function quickLabels() {
+  $('qCr').textContent = String(PROF.cr);
+  $('qDaily').classList.toggle('fresh', dailyRec().g === 0);
+}
+export function openMenu(pid) {
   if (!$('end').hidden) return;
   if (inGame()) S.paused = true;
   confirmT = -1e9;
   refreshMenu();
-  showPanel('pMain');
+  showPanel(pid || 'pMain');
+  if (pid === 'pMeta') renderMeta();
+  if (pid === 'pDaily') renderDaily();
   $('menu').hidden = false;
   syncCorner();
 }
-function closeMenu() {
+export function closeMenu() {
   $('menu').hidden = true;
   if (S) S.paused = false;
   syncCorner();
@@ -97,7 +115,16 @@ export function applyLang() {
   }
 }
 
+// the very first visit skips the title screen and goes straight into the first-day tutorial
+export function autoStart() {
+  if (SET.played || readSave() || PROF.st.night) return;
+  begin();
+}
 export function begin(sv, next) {
+  if (!SET.played) {
+    SET.played = true;
+    saveSettings();
+  }
   $('menu').hidden = true;
   $('end').hidden = true;
   syncCorner();
@@ -137,6 +164,15 @@ export function initMenu() {
   $('bHelp').addEventListener('click', () => showPanel('pHelp'));
   $('bSet').addEventListener('click', () => showPanel('pSet'));
   $('bAbout').addEventListener('click', () => showPanel('pAbout'));
+  onChange(quickLabels);
+  $('qDaily').addEventListener('click', e => {
+    e.currentTarget.blur();
+    openMenu('pDaily');
+  });
+  $('qShop').addEventListener('click', e => {
+    e.currentTarget.blur();
+    openMenu('pMeta');
+  });
   $('bDaily').addEventListener('click', () => {
     showPanel('pDaily');
     renderDaily();
