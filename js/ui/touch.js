@@ -28,6 +28,7 @@ export function buzz(ms) {
 export function layoutCorner() {
   const c = $('corner'),
     cv = document.querySelector('#game canvas');
+  layoutQuick(cv);
   if (!TOUCH || !cv) {
     c.style.top = c.style.left = '';
     return;
@@ -40,6 +41,22 @@ export function layoutCorner() {
   } else {
     c.style.left = Math.round(r.left + 10) + 'px';
     c.style.top = Math.round(r.top + 58 * k) + 'px';
+  }
+}
+// the quick buttons (operation of the day, shop): under the crystal counter, or on the right on touch screens
+// where the round corner buttons already take the left side
+function layoutQuick(cv) {
+  const q = $('quick');
+  if (!cv) return;
+  const r = cv.getBoundingClientRect(),
+    k = r.width / W;
+  q.style.top = Math.round(r.top + (TOUCH ? 92 : 88) * k) + 'px';
+  if (TOUCH) {
+    q.style.left = '';
+    q.style.right = Math.round(window.innerWidth - r.right + 10) + 'px';
+  } else {
+    q.style.right = '';
+    q.style.left = Math.round(r.left + 14 * k) + 'px';
   }
 }
 // inside a game portal's iframe the portal owns full screen, so the game never switches to it by itself there

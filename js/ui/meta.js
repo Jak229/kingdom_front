@@ -8,6 +8,7 @@ import {
   AWARDS,
   PROF,
   SKINS,
+  STREAK,
   UNITS,
   achProgress,
   addReserve,
@@ -174,6 +175,21 @@ export function renderMeta() {
   else if (tab === 'ach') fillAch(box);
   else fillShop(box);
 }
+// login reward strip on the title screen: the days of the run, today's lit up
+export function renderStreak() {
+  const box = $('streak'),
+    st = PROF.streak || {n: 0};
+  box.textContent = '';
+  box.appendChild(el('div', 'lbl', tr('st_title', st.n, STREAK.length)));
+  const row = el('div', 'days');
+  STREAK.forEach((cr, i) => {
+    const d = el('div', 'sd' + (i < st.n - 1 ? ' got' : i === st.n - 1 ? ' now' : ''));
+    d.appendChild(el('small', '', String(i + 1)));
+    d.appendChild(i < st.n - 1 ? el('span', 'ok', '✓') : crys(cr));
+    row.appendChild(d);
+  });
+  box.appendChild(row);
+}
 export function metaLabel() {
   const b = $('bMeta');
   b.textContent = tr('m_meta') + ' ';
@@ -194,8 +210,16 @@ export function syncAwards() {
   }
   const a = AWARDS.shift();
   cur = {until: performance.now() + 3600};
-  $('awK').textContent = tr(a.kind === 'ach' ? 'aw_ach' : 'aw_task');
-  $('awT').textContent = a.kind === 'ach' ? tr('ach_' + a.id) : tr('task_' + a.id, a.n);
+  const K = {ach: 'aw_ach', daily: 'm_daily', login: 'aw_login'};
+  $('awK').textContent = tr(K[a.kind] || 'aw_task');
+  $('awT').textContent =
+    a.kind === 'ach'
+      ? tr('ach_' + a.id)
+      : a.kind === 'daily'
+        ? tr('d_goal', a.n)
+        : a.kind === 'login'
+          ? tr('st_day', a.n, STREAK.length)
+          : tr('task_' + a.id, a.n);
   $('awR').textContent = '';
   $('awR').appendChild(crys('+' + a.cr));
   box.hidden = false;

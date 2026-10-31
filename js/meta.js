@@ -23,7 +23,9 @@ export const ACH = [
   ['portal', 20, 'portal', 1],
   ['victory', 50, 'victory', 1],
   ['front3', 40],
-  ['kill1000', 40, 'kill', 1000]
+  ['kill1000', 40, 'kill', 1000],
+  ['daily1', 10],
+  ['daily5', 30, 'dailyDays', 5]
 ].map(([id, cr, stat, need]) => ({id, cr, stat, need}));
 
 // daily special tasks: three a day are drawn from this list, progress counts across operations that day
@@ -73,8 +75,10 @@ export const UNITS = [
   {id: 'qm', role: 'farmer', cost: 6}
 ];
 
-function today() {
-  const d = new Date();
+// the local calendar date, or the one off days away
+export function today(off) {
+  const n = new Date(),
+    d = new Date(n.getFullYear(), n.getMonth(), n.getDate() + (off || 0));
   return (
     d.getFullYear() +
     '-' +
@@ -178,6 +182,83 @@ export function ev(k, n) {
   for (const a of ACH) if (a.stat === k && !PROF.ach[a.id] && PROF.st[k] >= a.need) achieve(a.id);
   changed();
 }
+// login reward: crystals for each day of a run of days in a row, the 7th is the big one, then it starts over
+export const STREAK = [5, 6, 8, 10, 12, 15, 30];
+// the first visit of a day pays out; returns the day of the run (1–7) or 0 if today is already paid
+export function checkStreak() {
+  const t = today(),
+    s = PROF.streak || {};
+  if (s.last === t) return 0;
+  const n = s.last === today(-1) ? (s.n % STREAK.length) + 1 : 1;
+  PROF.streak = {last: t, n};
+  award('login', 'n', STREAK[n - 1], n);
+  changed();
+  return n;
+}
+// what coming back tomorrow pays
+export function streakNext() {
+  const s = PROF.streak;
+  return STREAK[s && s.last === today() ? s.n % STREAK.length : 0];
+}
+
+// operation of the day: [nights held, crystals], each goal paid once a day
+export const DAILY_GOALS = [
+  [3, 8],
+  [5, 12],
+  [8, 20]
+];
+// today's record; a run that started before midnight no longer counts
+export function dailyRec(d) {
+  d = d || today();
+  if (d !== today()) return null;
+  if (!PROF.dly || PROF.dly.d !== d) PROF.dly = {d, best: 0, kills: 0, g: 0, won: false, runs: 0};
+  return PROF.dly;
+}
+function dailyGoals(r, n) {
+  while (r.g < DAILY_GOALS.length && n >= DAILY_GOALS[r.g][0]) {
+    const [k, cr] = DAILY_GOALS[r.g];
+    if (r.g === 0) {
+      achieve('daily1');
+      ev('dailyDays');
+    }
+    r.g++;
+    award('daily', 'n', cr, k);
+  }
+}
+function dailyBest(r, n, kills) {
+  if (n > r.best || (n === r.best && kills > r.kills)) {
+    r.best = n;
+    r.kills = kills;
+  }
+  PROF.dbest = Math.max(PROF.dbest || 0, n);
+}
+// a new try at today's operation: returns the record it has to beat
+export function dailyStart(d) {
+  const r = dailyRec(d);
+  if (!r) return 0;
+  r.runs++;
+  changed();
+  return r.best;
+}
+// a night of today's operation is over: n nights held so far
+export function dailyNight(d, n, kills) {
+  const r = dailyRec(d);
+  if (!r) return;
+  dailyBest(r, n, kills);
+  dailyGoals(r, n);
+  changed();
+}
+export function dailyEnd(d, n, kills, won) {
+  const r = dailyRec(d);
+  if (!r) return;
+  dailyBest(r, n, kills);
+  if (won) {
+    r.won = true;
+    dailyGoals(r, Infinity);
+  }
+  changed();
+}
+
 export function achProgress(a) {
   if (PROF.ach[a.id]) return 1;
   return a.stat ? Math.min(1, (PROF.st[a.stat] || 0) / a.need) : 0;

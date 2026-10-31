@@ -46,6 +46,7 @@ import {LAYERS, SEASON_TINT, makeLayers} from './render/layers.js';
 import {$} from './ui/dom.js';
 import {TOUCH, buzz, touch} from './ui/touch.js';
 import {TUT_BOTTOM, syncTut} from './ui/tutorial.js';
+import {autoStart, syncQuick} from './ui/menu.js';
 import {toggleSound} from './ui/settings.js';
 import {syncAdButton} from './ui/adbutton.js';
 import {PROF} from './meta.js';
@@ -251,6 +252,7 @@ export class Main extends Phaser.Scene {
     };
     CG.onHush(h => AU.setHush(h));
     CG.loaded();
+    autoStart();
   }
   // tex: another texture with the same frame names (a vehicle skin)
   spr(pool, key, frame, x, y, flip, tint, alpha, fill, tex) {
@@ -373,6 +375,7 @@ export class Main extends Phaser.Scene {
     CG.setPlaying(S.running && !S.paused && !S.over && !S.won && $('menu').hidden);
     syncAdButton();
     syncTut();
+    syncQuick();
     syncAwards();
     this.events_(dt);
     this.makeSigns();
@@ -465,16 +468,18 @@ export class Main extends Phaser.Scene {
   }
   bannerLabel(day) {
     const first = (day - 1) % SEASON_DAYS === 0;
-    const nf = !!(S && S.front > 1 && day === 1);
+    const dl = !!(S && S.daily && day === 1),
+      nf = !!(S && S.front > 1 && day === 1);
     return (
-      (nf ? tr('hudFront', roman(S.front), S.front) + ' · ' : '') +
+      (dl ? tr('mod_' + S.daily.m) + ' · ' : nf ? tr('hudFront', roman(S.front), S.front) + ' · ' : '') +
       tr('hudDay', roman(day), day) +
-      (first && !nf ? ' · ' + SEASONS[seasonIdx(day)].name : '')
+      (first && !nf && !dl ? ' · ' + SEASONS[seasonIdx(day)].name : '')
     );
   }
   /* scenery for the current front: landmark groups (seeded by front), telegraph line, trees, props, grass */
   buildDecor() {
-    const front = S.front || 1;
+    // the operation of the day looks like the front whose robots it borrows
+    const front = S.foe || S.front || 1;
     this.decoFront = front;
     this.seasonShown = -1;
     const dc = this.decoC,
@@ -815,7 +820,7 @@ export class Main extends Phaser.Scene {
     this.camX = lerp(this.camX, want, 0.08);
     const cx = Math.round(this.camX * K) / K;
     this.cameras.main.scrollX = cx;
-    if (this.decoFront !== S.front) this.buildDecor();
+    if (this.decoFront !== (S.foe || S.front || 1)) this.buildDecor();
     const si = seasonIdx(S.day);
     if (si !== this.seasonShown) this.applySeason(si);
     const wint = si === 3 ? 1 : 0;
@@ -1604,7 +1609,11 @@ export class Main extends Phaser.Scene {
     hud.fillTriangle(23, 46, 19, 51, 23, 53);
     this.crTxt.setText(String(PROF.cr));
     this.dayTxt.setText(
-      (S.front > 1 ? tr('hudFront', roman(S.front), S.front) + ' · ' : '') +
+      (S.daily
+        ? tr('mod_' + S.daily.m) + ' · '
+        : S.front > 1
+          ? tr('hudFront', roman(S.front), S.front) + ' · '
+          : '') +
         tr('hudDay', roman(S.day), S.day) +
         ' · ' +
         SEASONS[si].name +
