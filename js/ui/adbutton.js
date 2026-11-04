@@ -22,7 +22,13 @@ export function adFailText() {
 export function syncAdButton() {
   const b = $('adbtn'),
     show =
-      CG.active && !busy && inGame() && !S.paused && $('menu').hidden && S.coins < PURSE && performance.now() >= readyAt;
+      CG.active &&
+      !busy &&
+      inGame() &&
+      !S.paused &&
+      $('menu').hidden &&
+      S.coins < PURSE &&
+      performance.now() >= readyAt;
   if (b.hidden === !show) return;
   b.hidden = !show;
   if (show) {

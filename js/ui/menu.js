@@ -6,14 +6,16 @@ import {LANG, setLang, tr} from '../i18n/index.js';
 import {clamp, roman} from '../util.js';
 import {S, newState, setS} from '../state.js';
 import {toast} from '../logic/rules.js';
-import {clearSave, loadGame, readSave} from '../save.js';
+import {clearSave, loadGame, readSave, saveGame} from '../save.js';
 import {fillEnd, initEnd} from './end.js';
 import {AU} from '../audio.js';
 import {CG} from '../crazygames.js';
 import {$} from './dom.js';
 import {layoutCorner} from './touch.js';
 import {syncToggles} from './settings.js';
-import {deployReserve, metaLabel, renderMeta} from './meta.js';
+import {deployReserve, metaLabel, renderMeta, renderStreak} from './meta.js';
+import {againDaily, dailyLabel, renderDaily} from './daily.js';
+import {PROF, dailyRec, dailyStart, onChange} from '../meta.js';
 
 // menu: the same card is the title screen and the pause screen
 export const inGame = () => !!(S && S.running && !S.over && !S.won);
@@ -30,6 +32,11 @@ function refreshMenu() {
     st = $('start'),
     c = $('cont');
   $('resume').hidden = !ig;
+  // the operation of the day starts from the title screen only
+  $('bDaily').hidden = ig;
+  dailyLabel();
+  $('streak').hidden = ig;
+  renderStreak();
   c.hidden = !sv;
   if (sv) c.textContent = tr('m_contSave', saveLabel(sv));
   const pending = ig && performance.now() - confirmT < 6000;
@@ -42,25 +49,41 @@ function refreshMenu() {
 }
 function showPanel(id) {
   panel = id;
-  for (const p of ['pMain', 'pHelp', 'pSet', 'pAbout', 'pMeta']) $(p).hidden = p !== id;
+  for (const p of ['pMain', 'pHelp', 'pSet', 'pAbout', 'pMeta', 'pDaily']) $(p).hidden = p !== id;
   $('menu').firstElementChild.scrollTop = 0;
 }
 export function syncCorner() {
   const play = $('menu').hidden && $('end').hidden;
   $('mbtn').hidden = !play;
+  syncQuick();
   $('touch').hidden = !play;
   layoutCorner();
 }
-export function openMenu() {
+// quick buttons show during play only, and stay out of the way during the first-day tutorial (checked every frame)
+export function syncQuick() {
+  const on = inGame() && $('menu').hidden && $('end').hidden && !S.tut,
+    q = $('quick');
+  if (q.hidden !== on) return;
+  q.hidden = !on;
+  if (on) quickLabels();
+}
+// the shop and the operation of the day open from the play screen straight on their panel
+function quickLabels() {
+  $('qCr').textContent = String(PROF.cr);
+  $('qDaily').classList.toggle('fresh', dailyRec().g === 0);
+}
+export function openMenu(pid) {
   if (!$('end').hidden) return;
   if (inGame()) S.paused = true;
   confirmT = -1e9;
   refreshMenu();
-  showPanel('pMain');
+  showPanel(pid || 'pMain');
+  if (pid === 'pMeta') renderMeta();
+  if (pid === 'pDaily') renderDaily();
   $('menu').hidden = false;
   syncCorner();
 }
-function closeMenu() {
+export function closeMenu() {
   $('menu').hidden = true;
   if (S) S.paused = false;
   syncCorner();
@@ -83,6 +106,7 @@ export function applyLang() {
   $('ver').textContent = tr('a_ver', VERSION);
   metaLabel();
   if (!$('pMeta').hidden) renderMeta();
+  if (!$('pDaily').hidden) renderDaily();
   syncToggles();
   refreshMenu();
   if (S) {
@@ -91,7 +115,16 @@ export function applyLang() {
   }
 }
 
-function begin(sv, next) {
+// the very first visit skips the title screen and goes straight into the first-day tutorial
+export function autoStart() {
+  if (SET.played || readSave() || PROF.st.night) return;
+  begin();
+}
+export function begin(sv, next) {
+  if (!SET.played) {
+    SET.played = true;
+    saveSettings();
+  }
   $('menu').hidden = true;
   $('end').hidden = true;
   syncCorner();
@@ -103,14 +136,23 @@ function begin(sv, next) {
   S.running = true;
   S.paused = false;
   deployReserve();
+  // a new operation is saved at once, so even a first-night defeat can go back to the first morning
+  if (!sv) saveGame();
   const sc = window.__kg && window.__kg.scene;
   if (sc) {
     sc.showBanner(S.day);
     sc.camX = clamp(S.player.x - W / 2, 0, WORLD - W);
   }
   S.tut =
-    !next && !sv && S.front === 1 && S.day === 1 && SET.tut !== false ? {i: 0, t: 0, x0: S.player.x} : null;
-  if (!S.tut) toast(next ? tr('beginNext', roman(S.front), S.front) : sv ? tr('beginCont') : tr('beginNew'));
+    !next && !sv && !S.daily && S.front === 1 && S.day === 1 && SET.tut !== false
+      ? {i: 0, t: 0, x0: S.player.x}
+      : null;
+  // a new try at the operation of the day remembers the record it has to beat
+  if (S.daily && !sv) {
+    S.daily.prev = dailyStart(S.daily.d);
+    toast(tr('beginDaily', tr('mod_' + S.daily.m), tr('modd_' + S.daily.m)));
+  } else if (!S.tut)
+    toast(next ? tr('beginNext', roman(S.front), S.front) : sv ? tr('beginCont') : tr('beginNew'));
 }
 
 export function initMenu() {
@@ -122,6 +164,19 @@ export function initMenu() {
   $('bHelp').addEventListener('click', () => showPanel('pHelp'));
   $('bSet').addEventListener('click', () => showPanel('pSet'));
   $('bAbout').addEventListener('click', () => showPanel('pAbout'));
+  onChange(quickLabels);
+  $('qDaily').addEventListener('click', e => {
+    e.currentTarget.blur();
+    openMenu('pDaily');
+  });
+  $('qShop').addEventListener('click', e => {
+    e.currentTarget.blur();
+    openMenu('pMeta');
+  });
+  $('bDaily').addEventListener('click', () => {
+    showPanel('pDaily');
+    renderDaily();
+  });
   $('bMeta').addEventListener('click', () => {
     showPanel('pMeta');
     renderMeta();
@@ -171,9 +226,19 @@ export function initMenu() {
   // between operations is the natural break for a CrazyGames midgame ad (no-op elsewhere)
   $('restart').addEventListener('click', async () => {
     await CG.midgame();
-    clearSave();
-    setS(newState());
+    if (S.daily) againDaily();
+    else {
+      clearSave();
+      setS(newState());
+    }
     begin();
+  });
+  // back to the last dawn after a defeat: the night is replayed, the operation goes on
+  $('revive').addEventListener('click', async () => {
+    const sv = S.reviveSv;
+    if (!sv) return;
+    await CG.midgame();
+    begin(sv);
   });
   $('nextFront').addEventListener('click', async () => {
     const nx = S.nextFront;

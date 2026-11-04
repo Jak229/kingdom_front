@@ -1,7 +1,7 @@
 /* One simulation tick for the whole world, plus darkness and moving on to the next front. */
 import {C, GY, PURSE, VEH, WORLD, dayLen, nightLen} from '../config.js';
 import {clamp, rnd} from '../util.js';
-import {S, input, mkPerson, newState} from '../state.js';
+import {S, input, mkPerson, mod, newState} from '../state.js';
 import {balanceGuards, handlePay, pickSide, puff, rocketUp, rocketX} from './rules.js';
 import {tutClock, tutStep} from './tutorial.js';
 import {updPerson} from './people.js';
@@ -60,7 +60,8 @@ export function step(dt) {
   // enemy recon drones fly over in daytime (soldiers shoot them down for scrap)
   if (!S.night) {
     S.rabbitCd -= dt;
-    if (S.rabbitCd <= 0 && S.rabbits.length < 5) {
+    // «Swarm» day: twice as many recon drones (and their scrap)
+    if (S.rabbitCd <= 0 && S.rabbits.length < (mod('swarm') ? 10 : 5)) {
       const sd = Math.random() < 0.5 ? -1 : 1;
       S.rabbits.push({
         x: C + sd * rnd(620, 2400),
@@ -72,7 +73,7 @@ export function step(dt) {
         dead: false,
         anim: 0
       });
-      S.rabbitCd = rnd(4, 8);
+      S.rabbitCd = mod('swarm') ? rnd(2, 4) : rnd(4, 8);
     }
   }
   for (const r of S.rabbits) {

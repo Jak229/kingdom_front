@@ -5,6 +5,7 @@ import {input} from './state.js';
 /* ---------- sound: everything is synthesized in the browser ----------
    sfx bus (spatial around the camera, muffled while paused) + music bus (step-sequenced tracks that crossfade),
    both into a gentle compressor. No constant noise beds: loops are tonal and only sound while something is there. */
+const TOUCHY = typeof matchMedia === 'function' && matchMedia('(pointer:coarse)').matches;
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 const CH = {
   Am: [57, 60, 64],
@@ -79,14 +80,32 @@ export const AU = {
     }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
-    const c = (this.ctx = new AC());
+    // a larger output buffer: phones under load crackle and drop out with the default low-latency one
+    let c;
+    try {
+      c = this.ctx = new AC({latencyHint: 'playback'});
+    } catch (e) {
+      c = this.ctx = new AC();
+    }
+    // the music is scheduled ahead on a timer too, so a slow frame does not leave a gap in it
+    setInterval(() => {
+      if (c.state === 'running') this.runMusic();
+    }, 100);
     const comp = c.createDynamicsCompressor();
     comp.threshold.value = -16;
     comp.knee.value = 12;
     comp.ratio.value = 4;
     comp.attack.value = 0.004;
     comp.release.value = 0.25;
-    comp.connect(c.destination);
+    // a hard ceiling after the gentle compressor, so a pile of explosions never clips
+    const lim = c.createDynamicsCompressor();
+    lim.threshold.value = -2;
+    lim.knee.value = 0;
+    lim.ratio.value = 20;
+    lim.attack.value = 0.002;
+    lim.release.value = 0.1;
+    comp.connect(lim);
+    lim.connect(c.destination);
     this.master = c.createGain();
     this.master.gain.value = 0;
     this.master.gain.setTargetAtTime(this.level(), c.currentTime + 0.2, 1.2);
@@ -241,7 +260,8 @@ export const AU = {
     this.count(s);
   },
   play(e) {
-    if (!this.ctx || this.muted || this.voices > 60) return;
+    // fewer simultaneous voices on phones, whose audio thread overloads first
+    if (!this.ctx || this.muted || this.voices > (TOUCHY ? 36 : 60)) return;
     const f = this.fx[e.k];
     if (f) f.call(this, e.x, e.a || {});
   },
@@ -953,8 +973,13 @@ export const AU = {
       T = this.tracks[this.trkName];
     if (!T || !this.music || now < this.hold - 0.3) return;
     const sd = 60 / T.bpm / 2;
-    if (this.nextT < now - 0.5) this.nextT = now + 0.05;
-    while (this.nextT < now + 0.3) {
+    // after a long stall the missed steps are skipped instead of crammed in at once
+    if (this.nextT < now) {
+      const miss = Math.ceil((now - this.nextT) / sd);
+      this.nextT += miss * sd;
+      this.stepN += miss;
+    }
+    while (this.nextT < now + 0.6) {
       T.step.call(this, this.stepN, this.nextT, sd, this.tg);
       this.nextT += sd;
       this.stepN++;

@@ -2,7 +2,7 @@
 import {C, DEFS, GY, SHOPS, VEH, WILD, dayLen} from '../config.js';
 import {tokN, tr} from '../i18n/index.js';
 import {rnd} from '../util.js';
-import {S, input} from '../state.js';
+import {S, input, mod} from '../state.js';
 import {bombBoom, dropCargo, hitE} from './enemies.js';
 import {assaultTarget, swapVehicle, unlockWild} from './support.js';
 import {SP} from '../sprites.js';
@@ -204,7 +204,9 @@ function targetInfo(t) {
     if (S.hq.level < sh.minHq)
       return {payable: false, text: tr('shopLocked', d.name, DEFS.hq.name[sh.minHq])};
     if (sh.tools >= 4) return {payable: false, text: tr('shopFull', d.name)};
-    return {payable: true, cost: d.cost, text: tr('shopGive', d.name, d.tool)};
+    // «Veterans» day: the garrison starts with soldiers, so new rifles cost more
+    const cost = d.cost + (sh.kind === 'gun' && mod('vets') ? 2 : 0);
+    return {payable: true, cost, text: tr('shopGive', d.name, d.tool)};
   }
   const sp = t.obj,
     d = DEFS[sp.type];
@@ -371,7 +373,9 @@ export function kill(target) {
       target.x
     );
     puff(target.x, target.y || GY - 16, 0xff5a3c, 10);
-    for (let i = 0; i < target.loot + (target.bounty || 0); i++)
+    // «Trophies» day: robots often drop a token
+    const extra = mod('poor') && Math.random() < 0.35 ? 1 : 0;
+    for (let i = 0; i < target.loot + (target.bounty || 0) + extra; i++)
       dropCoin(target.x, target.fly ? target.y : GY - 20);
     if (target.fly) {
       dropCargo(target);

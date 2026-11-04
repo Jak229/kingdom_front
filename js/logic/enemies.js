@@ -2,7 +2,7 @@
 import {C, GY, PORTAL, VEH, nightLen, season, seasonIdx} from '../config.js';
 import {TOOL_OF, tokN, tr} from '../i18n/index.js';
 import {lerp, rnd} from '../util.js';
-import {S, mkPerson} from '../state.js';
+import {S, mkPerson, mod} from '../state.js';
 import {
   dropCoin,
   fuelNeed,
@@ -19,7 +19,7 @@ import {
 import {hitSquad, startConvoy} from './support.js';
 import {saveGame} from '../save.js';
 import {gameOver} from '../ui/end.js';
-import {achieve, ev} from '../meta.js';
+import {achieve, dailyNight, ev} from '../meta.js';
 import {SP} from '../sprites.js';
 
 /* ---------- enemies ---------- */
@@ -33,18 +33,22 @@ export function startNight() {
     for (let i = 0; i < 3; i++) dropCoin(S.convoy.x, GY - 30);
     S.convoy = null;
   }
-  const assault = S.day % 5 === 0;
+  const assault = S.day % (mod('storm') ? 3 : 5) === 0;
   sfx('radio', null, {v: 'night', d: 2.6});
   if (assault) sfx('siren', C);
   const F = (S.front || 1) - 1;
   let drones = Math.round((2 + S.day * 1.6) * (1 + 0.25 * F)),
     brutes = Math.floor(S.day / 3) + F;
+  // operation of the day: «Armour group» and «Swarm» bring more robots
+  const more = mod('swarm') ? 1.4 : mod('armor') ? 1.3 : 1;
+  drones = Math.round(drones * more * (grace() && S.day <= 2 ? 0.7 : 1));
+  if (mod('armor')) brutes = Math.round(brutes * 1.3);
   if (assault) {
     drones *= 2;
     brutes += 2;
   }
   // the front's own robots take some of the small ones' places; the newest kind comes in larger numbers and is introduced once
-  const front = S.front || 1,
+  const front = foeFront(),
     top = Math.min(front, 5);
   for (const k in FOE_FRONT) {
     const f0 = FOE_FRONT[k];
@@ -114,6 +118,7 @@ export function startDay() {
   S.nightHits = 0;
   S.day++;
   if (S.day >= 7) achieve('day7');
+  if (S.daily) dailyNight(S.daily.d, S.day - 1, S.kills);
   sfx('radio', null, {v: 'dawn', d: 2.2});
   for (const e of S.enemies)
     if (!e.dead) {
@@ -128,7 +133,11 @@ export function startDay() {
     for (let i = 0; i < season().recruits && n + i < 5; i++)
       S.people.push(mkPerson(cx + rnd(-50, 50), 'vagrant', cx));
   }
-  for (let i = 0; i < S.hq.level; i++) dropCoin(C + rnd(-40, 40), GY - 50);
+  // supply drops for a new commander: days 2–4 of the first front start with 4 extra tokens at HQ
+  const supply = S.day <= 4 && (S.front || 1) === 1 && !S.daily;
+  if (supply) for (let i = 0; i < 4; i++) dropCoin(C + rnd(-60, 60), GY - 50);
+  // «Long nights» day: HQ pays double at dawn
+  for (let i = 0; i < S.hq.level * (mod('long') ? 2 : 1); i++) dropCoin(C + rnd(-40, 40), GY - 50);
   if (S.bank.level > 0 && S.bank.saved > 0) S.bank.saved += Math.max(1, Math.floor(S.bank.saved * 0.2));
   if (S.hq.level >= 2 && S.day % 2 === 0 && season().convoy) startConvoy();
   const newSeason = seasonIdx(S.day) !== seasonIdx(S.day - 1),
@@ -142,13 +151,19 @@ export function startDay() {
         : tr('fuelStep', L.fuel, fuelNeed());
   }
   const saved = saveGame();
-  toast(fm + (newSeason ? season().note : tr('dawn', S.day) + (saved ? tr('saved') : '')));
+  toast(
+    fm +
+      (newSeason ? season().note : tr('dawn', S.day) + (saved ? tr('saved') : '')) +
+      (supply ? tr('supplyDrop') : '')
+  );
 }
 /* later fronts: from front II each front brings one new robot and its own boss; from front VI on they all come mixed */
 const FOE_FRONT = {shield: 2, jumper: 3, bomber: 4, jammer: 5};
 const BOSS_OF = ['walker', 'walker', 'ram', 'hive', 'howitzer', 'colossus'];
+// which front's robots come: the operation of the day borrows another front's, without its difficulty
+const foeFront = () => S.foe || S.front || 1;
 function frontBoss(i) {
-  const f = S.front || 1;
+  const f = foeFront();
   if (f < BOSS_OF.length) return i === 0 ? BOSS_OF[f] : 'walker';
   const all = ['ram', 'hive', 'howitzer', 'colossus', 'walker'];
   return all[(f + i * 2) % all.length];
@@ -311,12 +326,24 @@ function personHit(m) {
   puff(m.x, GY - 20, 0xff5a3c, 6);
   sfx('hurt', m.x);
 }
+// a new commander's first three nights on the first front: the base cannot fall, a robot only knocks the empty-handed
+// commander back (the operation of the day gets no such help)
+export const grace = () => S.day <= 3 && (S.front || 1) === 1 && !S.daily;
+function knockBack(e) {
+  const p = S.player;
+  p.hitCd = 2.5;
+  if (e) e.flee = true;
+  S.nightHits = (S.nightHits || 0) + 1;
+  sfx('hitPlayer', p.x);
+  toast(tr('graceHit'), true);
+}
 // a robot reaches the commander: tokens are knocked out, half of them carried off; with no tokens left the base falls
 function touchPlayer(e) {
   const p = S.player;
   if (Math.abs(p.x - e.x) >= 18 || p.hitCd > 0) return false;
   if (S.coins <= 0) {
-    gameOver();
+    if (grace() && !e.boss) knockBack(e);
+    else gameOver();
     return true;
   }
   const lose = VEH[p.veh].armor
@@ -347,7 +374,8 @@ export function bombBoom(x, full, self) {
     const p = S.player;
     if (Math.abs(p.x - x) < 40 && p.hitCd <= 0) {
       if (S.coins <= 0) {
-        gameOver();
+        if (grace()) knockBack(null);
+        else gameOver();
         return;
       }
       const lose = VEH[p.veh].armor ? 1 : Math.min(S.coins, Math.max(1, Math.ceil(S.coins * 0.25)));
@@ -469,6 +497,16 @@ function hiveDrop(e) {
   S.enemies.push(r);
 }
 export function spawnEnemy(q) {
+  const n0 = S.enemies.length;
+  spawnOne(q);
+  // «Treasury» day: rich start, tougher robots
+  if (mod('rich'))
+    for (const e of S.enemies.slice(n0)) {
+      e.hp = Math.ceil(e.hp * 1.3);
+      if (e.maxHp) e.maxHp = e.hp;
+    }
+}
+function spawnOne(q) {
   if (S.portalDead[q.side < 0 ? 0 : 1]) q.side = -q.side;
   const brute = q.type === 'brute';
   const x = q.side < 0 ? S.portals[0] : S.portals[1];
