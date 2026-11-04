@@ -362,5 +362,16 @@ export default {
   e_tomorrow: 'Tomorrow: +{0} crystals for logging in and a new operation of the day, “{1}”.',
   q_daily: 'Daily',
   d_inGame:
-    'Your current operation will wait: continue it from its last dawn with “Continue” in the main menu.'
+    'Your current operation will wait: continue it from its last dawn with “Continue” in the main menu.',
+  graceHit:
+    'A robot knocked the commander down! For the first three nights the base holds, but after that it falls without tokens',
+  supplyDrop: '. Supplies: +4 tokens at HQ',
+  aw_order: 'Order complete',
+  ord_label: 'Order {0}/{1}',
+  ord_hq: 'Upgrade HQ: “{1}”',
+  ord_guards: 'Arm soldiers: {0}',
+  ord_walls: 'Fortify both flanks',
+  ord_build: 'Build: “{1}”',
+  ord_night: 'Survive nights: {0}',
+  ord_veh: 'Get a vehicle from a depot beyond the walls'
 };

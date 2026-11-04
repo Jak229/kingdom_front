@@ -50,7 +50,7 @@ function layoutQuick(cv) {
   if (!cv) return;
   const r = cv.getBoundingClientRect(),
     k = r.width / W;
-  q.style.top = Math.round(r.top + (TOUCH ? 92 : 88) * k) + 'px';
+  q.style.top = Math.round(r.top + (TOUCH ? 150 : 88) * k) + 'px';
   if (TOUCH) {
     q.style.left = '';
     q.style.right = Math.round(window.innerWidth - r.right + 10) + 'px';

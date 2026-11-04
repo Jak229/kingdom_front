@@ -182,6 +182,14 @@ export function ev(k, n) {
   for (const a of ACH) if (a.stat === k && !PROF.ach[a.id] && PROF.st[k] >= a.need) achieve(a.id);
   changed();
 }
+// orders after the tutorial (logic/orders.js): PROF.ord is how many are done
+export function completeOrder(o) {
+  PROF.ord = (PROF.ord | 0) + 1;
+  PROF.cr += o.cr;
+  AWARDS.push({kind: 'order', id: o.id, cr: o.cr, n: o.need, arg: o.arg ? o.arg() : ''});
+  changed();
+}
+
 // login reward: crystals for each day of a run of days in a row, the 7th is the big one, then it starts over
 export const STREAK = [5, 6, 8, 10, 12, 15, 30];
 // the first visit of a day pays out; returns the day of the run (1–7) or 0 if today is already paid

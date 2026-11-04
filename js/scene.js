@@ -47,6 +47,7 @@ import {$} from './ui/dom.js';
 import {TOUCH, buzz, touch} from './ui/touch.js';
 import {TUT_BOTTOM, syncTut} from './ui/tutorial.js';
 import {autoStart, syncQuick} from './ui/menu.js';
+import {syncOrders} from './ui/orders.js';
 import {toggleSound} from './ui/settings.js';
 import {syncAdButton} from './ui/adbutton.js';
 import {PROF} from './meta.js';
@@ -376,6 +377,7 @@ export class Main extends Phaser.Scene {
     syncAdButton();
     syncTut();
     syncQuick();
+    syncOrders();
     syncAwards();
     this.events_(dt);
     this.makeSigns();

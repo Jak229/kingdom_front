@@ -370,5 +370,16 @@ export default {
   e_tomorrow: 'Mañana: +{0} cristales por entrar y una nueva operación del día, «{1}».',
   q_daily: 'Diaria',
   d_inGame:
-    'Tu operación actual esperará: continúala desde su último amanecer con «Continuar» en el menú principal.'
+    'Tu operación actual esperará: continúala desde su último amanecer con «Continuar» en el menú principal.',
+  graceHit:
+    '¡Un robot derribó al comandante! Las tres primeras noches la base resiste, pero después cae sin fichas',
+  supplyDrop: '. Suministros: +4 fichas en el cuartel',
+  aw_order: 'Orden cumplida',
+  ord_label: 'Orden {0}/{1}',
+  ord_hq: 'Mejora el cuartel: «{1}»',
+  ord_guards: 'Arma soldados: {0}',
+  ord_walls: 'Fortifica ambos flancos',
+  ord_build: 'Construye: «{1}»',
+  ord_night: 'Sobrevive noches: {0}',
+  ord_veh: 'Consigue un vehículo en un depósito tras los muros'
 };

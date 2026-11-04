@@ -41,7 +41,7 @@ export function startNight() {
     brutes = Math.floor(S.day / 3) + F;
   // operation of the day: «Armour group» and «Swarm» bring more robots
   const more = mod('swarm') ? 1.4 : mod('armor') ? 1.3 : 1;
-  drones = Math.round(drones * more);
+  drones = Math.round(drones * more * (grace() && S.day <= 2 ? 0.7 : 1));
   if (mod('armor')) brutes = Math.round(brutes * 1.3);
   if (assault) {
     drones *= 2;
@@ -133,6 +133,9 @@ export function startDay() {
     for (let i = 0; i < season().recruits && n + i < 5; i++)
       S.people.push(mkPerson(cx + rnd(-50, 50), 'vagrant', cx));
   }
+  // supply drops for a new commander: days 2–4 of the first front start with 4 extra tokens at HQ
+  const supply = S.day <= 4 && (S.front || 1) === 1 && !S.daily;
+  if (supply) for (let i = 0; i < 4; i++) dropCoin(C + rnd(-60, 60), GY - 50);
   // «Long nights» day: HQ pays double at dawn
   for (let i = 0; i < S.hq.level * (mod('long') ? 2 : 1); i++) dropCoin(C + rnd(-40, 40), GY - 50);
   if (S.bank.level > 0 && S.bank.saved > 0) S.bank.saved += Math.max(1, Math.floor(S.bank.saved * 0.2));
@@ -148,7 +151,11 @@ export function startDay() {
         : tr('fuelStep', L.fuel, fuelNeed());
   }
   const saved = saveGame();
-  toast(fm + (newSeason ? season().note : tr('dawn', S.day) + (saved ? tr('saved') : '')));
+  toast(
+    fm +
+      (newSeason ? season().note : tr('dawn', S.day) + (saved ? tr('saved') : '')) +
+      (supply ? tr('supplyDrop') : '')
+  );
 }
 /* later fronts: from front II each front brings one new robot and its own boss; from front VI on they all come mixed */
 const FOE_FRONT = {shield: 2, jumper: 3, bomber: 4, jammer: 5};
@@ -319,12 +326,24 @@ function personHit(m) {
   puff(m.x, GY - 20, 0xff5a3c, 6);
   sfx('hurt', m.x);
 }
+// a new commander's first three nights on the first front: the base cannot fall, a robot only knocks the empty-handed
+// commander back (the operation of the day gets no such help)
+export const grace = () => S.day <= 3 && (S.front || 1) === 1 && !S.daily;
+function knockBack(e) {
+  const p = S.player;
+  p.hitCd = 2.5;
+  if (e) e.flee = true;
+  S.nightHits = (S.nightHits || 0) + 1;
+  sfx('hitPlayer', p.x);
+  toast(tr('graceHit'), true);
+}
 // a robot reaches the commander: tokens are knocked out, half of them carried off; with no tokens left the base falls
 function touchPlayer(e) {
   const p = S.player;
   if (Math.abs(p.x - e.x) >= 18 || p.hitCd > 0) return false;
   if (S.coins <= 0) {
-    gameOver();
+    if (grace() && !e.boss) knockBack(e);
+    else gameOver();
     return true;
   }
   const lose = VEH[p.veh].armor
@@ -355,7 +374,8 @@ export function bombBoom(x, full, self) {
     const p = S.player;
     if (Math.abs(p.x - x) < 40 && p.hitCd <= 0) {
       if (S.coins <= 0) {
-        gameOver();
+        if (grace()) knockBack(null);
+        else gameOver();
         return;
       }
       const lose = VEH[p.veh].armor ? 1 : Math.min(S.coins, Math.max(1, Math.ceil(S.coins * 0.25)));

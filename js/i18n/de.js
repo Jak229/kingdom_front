@@ -372,5 +372,16 @@ export default {
   e_tomorrow: 'Morgen: +{0} Kristalle fürs Einloggen und eine neue Tagesoperation: „{1}“.',
   q_daily: 'Täglich',
   d_inGame:
-    'Deine laufende Operation wartet: Setze sie im Hauptmenü mit „Weiter“ ab ihrem letzten Morgengrauen fort.'
+    'Deine laufende Operation wartet: Setze sie im Hauptmenü mit „Weiter“ ab ihrem letzten Morgengrauen fort.',
+  graceHit:
+    'Ein Roboter hat den Kommandanten umgestoßen! In den ersten drei Nächten hält die Basis, danach fällt sie ohne Marken',
+  supplyDrop: '. Nachschub: +4 Marken am HQ',
+  aw_order: 'Befehl erfüllt',
+  ord_label: 'Befehl {0}/{1}',
+  ord_hq: 'HQ ausbauen: „{1}“',
+  ord_guards: 'Soldaten bewaffnen: {0}',
+  ord_walls: 'Beide Flanken befestigen',
+  ord_build: 'Baue: „{1}“',
+  ord_night: 'Nächte überstehen: {0}',
+  ord_veh: 'Hol dir ein Fahrzeug aus einem Depot hinter den Mauern'
 };

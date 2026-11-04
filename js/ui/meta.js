@@ -210,7 +210,7 @@ export function syncAwards() {
   }
   const a = AWARDS.shift();
   cur = {until: performance.now() + 3600};
-  const K = {ach: 'aw_ach', daily: 'm_daily', login: 'aw_login'};
+  const K = {ach: 'aw_ach', daily: 'm_daily', login: 'aw_login', order: 'aw_order'};
   $('awK').textContent = tr(K[a.kind] || 'aw_task');
   $('awT').textContent =
     a.kind === 'ach'
@@ -219,7 +219,9 @@ export function syncAwards() {
         ? tr('d_goal', a.n)
         : a.kind === 'login'
           ? tr('st_day', a.n, STREAK.length)
-          : tr('task_' + a.id, a.n);
+          : a.kind === 'order'
+            ? tr('ord_' + a.id, a.n, a.arg)
+            : tr('task_' + a.id, a.n);
   $('awR').textContent = '';
   $('awR').appendChild(crys('+' + a.cr));
   box.hidden = false;
