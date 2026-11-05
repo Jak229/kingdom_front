@@ -9,7 +9,7 @@ import {toast} from '../logic/rules.js';
 import {clearSave, loadGame, readSave, saveGame} from '../save.js';
 import {fillEnd, initEnd} from './end.js';
 import {AU} from '../audio.js';
-import {CG} from '../crazygames.js';
+import {PF} from '../platform.js';
 import {$} from './dom.js';
 import {layoutCorner} from './touch.js';
 import {syncToggles} from './settings.js';
@@ -117,7 +117,7 @@ export function applyLang() {
 
 // the very first visit skips the title screen and goes straight into the first-day tutorial
 export function autoStart() {
-  if (SET.played || readSave() || PROF.st.night) return;
+  if (PF.titleFirst || SET.played || readSave() || PROF.st.night) return;
   begin();
 }
 export function begin(sv, next) {
@@ -205,7 +205,7 @@ export function initMenu() {
     langBox.appendChild(b);
   }
   // during a running operation "New operation" asks for a second click
-  $('start').addEventListener('click', () => {
+  $('start').addEventListener('click', async () => {
     if (inGame()) {
       if (performance.now() - confirmT > 6000) {
         confirmT = performance.now();
@@ -216,16 +216,19 @@ export function initMenu() {
       setS(newState());
     }
     confirmT = -1e9;
+    // the first Play of the visit is where GameDistribution shows its preroll (no-op elsewhere)
+    await PF.preroll();
     begin();
   });
-  $('cont').addEventListener('click', () => {
+  $('cont').addEventListener('click', async () => {
+    await PF.preroll();
     const cur = readSave();
     if (cur) begin(cur);
     else begin();
   });
-  // between operations is the natural break for a CrazyGames midgame ad (no-op elsewhere)
+  // between operations is the natural break for a midgame ad (no-op elsewhere)
   $('restart').addEventListener('click', async () => {
-    await CG.midgame();
+    await PF.midgame();
     if (S.daily) againDaily();
     else {
       clearSave();
@@ -237,13 +240,13 @@ export function initMenu() {
   $('revive').addEventListener('click', async () => {
     const sv = S.reviveSv;
     if (!sv) return;
-    await CG.midgame();
+    await PF.midgame();
     begin(sv);
   });
   $('nextFront').addEventListener('click', async () => {
     const nx = S.nextFront;
     if (!nx) return;
-    await CG.midgame();
+    await PF.midgame();
     begin(null, nx);
   });
   initEnd();

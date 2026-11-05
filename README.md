@@ -26,9 +26,32 @@ npm install
 npm run build
 ```
 
-Получится `export/front-line-v23.zip` (и та же папка распакованной в `export/dist/`). В архиве `index.html` лежит в корне, все пути относительные, модули собраны в один скрипт `js/game.js`, внешних запросов нет. Такой zip загружается на порталы, принимающие HTML5-игры (itch.io, CrazyGames, Poki, GameDistribution, Яндекс Игры и т.п.), и работает внутри их iframe. Внутри работает CrazyGames SDK (см. ниже); на других порталах он молча отключается, и игра идёт без рекламы.
+Получится `export/front-line-v26.zip` (и та же папка распакованной в `export/dist/`). В архиве `index.html` лежит в корне, все пути относительные, модули собраны в один скрипт `js/game.js`, внешних запросов нет, кроме SDK самого портала. Такой zip загружается на порталы, принимающие HTML5-игры, и работает внутри их iframe.
+
+Под каждый портал своя сборка, в ней остаётся только его SDK:
+
+```
+npm run build                          # CrazyGames        -> front-line-v26.zip
+npm run build:gd                       # GameDistribution  -> front-line-v26-gd.zip
+node build.mjs --platform=gd --gd-id=<id игры>   # то же, с id игры из кабинета GameDistribution
+npm run build:itch                     # itch.io и любые сайты, без рекламы -> front-line-v26-itch.zip
+npm run build:all                      # все три
+```
+
+Без `--gd-id` игра берёт id из адреса, по которому её отдаёт GameDistribution (`html5.gamedistribution.com/<id>/`). В исходниках (GitHub Pages, локально) портал выбирается сам: GameDistribution на его доменах или с `?gd` в адресе, иначе CrazyGames, который вне crazygames.com молча отключается.
 
 Что уже сделано под требования порталов: название без чужой торговой марки, в iframe игра не включает полноэкранный режим сама, забирает фокус клавиатуры по клику, отпускает зажатые кнопки при потере фокуса, стрелки и пробел не прокручивают страницу портала, нет меню браузера по правому клику и долгому нажатию, звук выключается в скрытой вкладке. Как и исходники, сборку нужно открывать через веб-сервер, а не двойным кликом по файлу.
+
+## GameDistribution
+
+HTML5 SDK GameDistribution (`js/gamedist.js`), тот же набор функций, что и у CrazyGames, через общий `js/platform.js`.
+
+- SDK грузится один раз при запуске; игра ждёт `SDK_READY` не дольше 6 секунд.
+- Preroll: первое нажатие «Новая операция» / «Продолжить» / запуск операции дня за визит. Поэтому на GameDistribution первый запуск открывает титульное меню, а не сразу обучение: реклама должна идти по нажатию игрока.
+- Midroll: кнопки экрана итогов («Следующий фронт», «Новая операция», «Вернуться к рассвету»).
+- Награда за просмотр: те же кнопки, что и на CrazyGames (жетоны в бою, +15 к следующему фронту), показываются только когда реклама заранее загружена (`preloadAd('rewarded')`); награда выдаётся по `SDK_REWARDED_WATCH_COMPLETE`.
+- `SDK_GAME_PAUSE` глушит звук и останавливает мир, `SDK_GAME_START` возвращает.
+- Сохранения — в localStorage. Проверить локально: `http://localhost:8000/?gd` (SDK грузится, но без id игры рекламы не будет; в консоли можно открыть отладку `gdsdk.openConsole()`).
 
 ## CrazyGames
 
@@ -72,9 +95,11 @@ vendor/phaser.min.js    движок Phaser 3.80.1 (лицензия MIT)
 export/                 сборка zip для игровых порталов
 art/cover.html          обложка для порталов из спрайтов игры (night, dusk, boss); art/cover.mjs рендерит все размеры в art/covers/
 fonts/patch_pixelify.py добавляет в Pixelify Sans недостающие кириллические О, П, І
-js/main.js              точка входа: ждёт CrazyGames SDK, затем грузит boot.js
+js/main.js              точка входа: ждёт SDK портала, затем грузит boot.js
 js/boot.js              язык, тип управления, запуск Phaser
+js/platform.js          выбор SDK портала: CrazyGames, GameDistribution или без портала
 js/crazygames.js        CrazyGames SDK: реклама, сигналы игры, облачные сохранения
+js/gamedist.js          GameDistribution SDK: preroll, midroll, награда за просмотр, пауза на время рекламы
 js/config.js            размеры мира, сезоны, таблицы построек, машин, лавок
 js/state.js             состояние игры S, ввод, новая партия
 js/settings.js          настройки игрока (облако CrazyGames или localStorage)

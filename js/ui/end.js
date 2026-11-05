@@ -5,7 +5,7 @@ import {S} from '../state.js';
 import {nextFrontState} from '../logic/step.js';
 import {clearSave, readSave, saveGame} from '../save.js';
 import {AU} from '../audio.js';
-import {CG} from '../crazygames.js';
+import {PF} from '../platform.js';
 import {adFailText} from './adbutton.js';
 import {PURSE} from '../config.js';
 import {syncCorner} from './menu.js';
@@ -25,12 +25,12 @@ export function showEnd(won) {
     // the operation of the day has no next front: it ends here and goes into today's record
     if (won) clearSave(true);
     dailyEnd(S.daily.d, S.day - 1, S.kills, won);
-    if (won) CG.happytime();
+    if (won) PF.happytime();
   } else if (won) {
     if (S.front + 1 >= 3) achieve('front3');
     S.nextFront = nextFrontState(S);
     saveGame(S.nextFront);
-    CG.happytime();
+    PF.happytime();
   }
   S.endWon = won;
   fillEnd();
@@ -46,7 +46,7 @@ export function fillEnd() {
   const rv = el('revive');
   rv.hidden = !S.reviveSv;
   if (S.reviveSv) rv.textContent = tr('e_revive', roman(S.reviveSv.day), S.reviveSv.day);
-  el('bonus').hidden = !won || !!S.daily || !CG.active || !!S.bonusGot;
+  el('bonus').hidden = !won || !!S.daily || !PF.canReward || !!S.bonusGot;
   el('bonus').textContent = tr('e_bonus', BONUS);
   el('restart').classList.toggle('alt', (won && !S.daily) || !!S.reviveSv);
   el('endStamp').textContent = tr(won ? 'e_stampWin' : 'e_stampLose');
@@ -91,7 +91,7 @@ export function initEnd() {
   b.addEventListener('click', async () => {
     if (b.disabled || !S.nextFront) return;
     b.disabled = true;
-    const ok = await CG.rewarded();
+    const ok = await PF.rewarded();
     b.disabled = false;
     if (!ok) {
       // say why instead of silently doing nothing, then offer the button again

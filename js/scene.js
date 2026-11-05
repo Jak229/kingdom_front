@@ -41,7 +41,7 @@ import {
 } from './render/helpers.js';
 import {ATLAS, SP, SPR, SPT, fname, initSprites, loadSprites} from './sprites.js';
 import {AU} from './audio.js';
-import {CG} from './crazygames.js';
+import {PF} from './platform.js';
 import {LAYERS, SEASON_TINT, makeLayers} from './render/layers.js';
 import {$} from './ui/dom.js';
 import {TOUCH, buzz, touch} from './ui/touch.js';
@@ -174,9 +174,9 @@ export class Main extends Phaser.Scene {
       ui.push(o);
       return o;
     };
-    const PF =
+    const FONT =
       '"Pixelify Sans", Rubik, "PingFang SC","Microsoft YaHei","Noto Sans CJK SC","WenQuanYi Zen Hei", system-ui, sans-serif';
-    const tf = {fontFamily: PF, color: '#f1ecd6', stroke: '#14120c', strokeThickness: 4, resolution: K};
+    const tf = {fontFamily: FONT, color: '#f1ecd6', stroke: '#14120c', strokeThickness: 4, resolution: K};
     this.hud = U(this.add.graphics().setScrollFactor(0).setDepth(10));
     this.coinTxt = U(
       this.add
@@ -249,10 +249,10 @@ export class Main extends Phaser.Scene {
       scene: this,
       input,
       AU,
-      CG
+      PF
     };
-    CG.onHush(h => AU.setHush(h));
-    CG.loaded();
+    PF.onHush(h => AU.setHush(h));
+    PF.loaded();
     autoStart();
   }
   // tex: another texture with the same frame names (a vehicle skin)
@@ -372,8 +372,9 @@ export class Main extends Phaser.Scene {
     input.pay = k.DOWN.isDown || k.S.isDown || touch.pay;
     input.fast = k.SHIFT.isDown || touch.fast || touch.dash;
     if (Phaser.Input.Keyboard.JustDown(k.M)) toggleSound();
-    step(dt);
-    CG.setPlaying(S.running && !S.paused && !S.over && !S.won && $('menu').hidden);
+    // an ad covers the game: the world waits until it closes
+    if (!PF.adBusy) step(dt);
+    PF.setPlaying(S.running && !S.paused && !S.over && !S.won && $('menu').hidden);
     syncAdButton();
     syncTut();
     syncQuick();
