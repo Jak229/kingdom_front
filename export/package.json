@@ -5,9 +5,9 @@
   "description": "Packs the game into dist/ and a zip for game portals: one bundled script, no network requests",
   "scripts": {
     "build": "node build.mjs",
-    "build:gd": "node build.mjs --platform=gd",
+    "build:gd": "node build.mjs --platform=gd --gd-id=6271b63aa4114ef6a22744f89c63ee47",
     "build:itch": "node build.mjs --platform=itch",
-    "build:all": "node build.mjs && node build.mjs --platform=gd && node build.mjs --platform=itch"
+    "build:all": "node build.mjs && node build.mjs --platform=gd --gd-id=6271b63aa4114ef6a22744f89c63ee47 && node build.mjs --platform=itch"
   },
   "devDependencies": {"esbuild": "0.28.2", "fflate": "0.8.3"}
 }
