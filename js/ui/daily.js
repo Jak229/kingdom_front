@@ -7,6 +7,7 @@ import {DAILY_GOALS, PROF, dailyRec, msToNewTasks} from '../meta.js';
 import {clearSave, readSave} from '../save.js';
 import {$} from './dom.js';
 import {begin, closeMenu, inGame} from './menu.js';
+import {PF} from '../platform.js';
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -71,7 +72,10 @@ export function renderDaily() {
     bt.appendChild(c);
   } else if (sv) {
     const c = el('button', 'go', tr('d_cont', roman(sv.day), sv.day));
-    c.onclick = () => begin(sv);
+    c.onclick = async () => {
+      await PF.preroll();
+      begin(sv);
+    };
     bt.appendChild(c);
   }
   const go = el(
@@ -79,7 +83,8 @@ export function renderDaily() {
     'go' + (sv || here ? ' alt' : ''),
     tr(sv || here ? 'd_restart' : r.runs ? 'd_again' : 'd_play')
   );
-  go.onclick = () => {
+  go.onclick = async () => {
+    await PF.preroll();
     clearSave(true);
     begin(null, newDaily());
   };

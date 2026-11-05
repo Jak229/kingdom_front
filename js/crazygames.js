@@ -1,6 +1,7 @@
 /* CrazyGames HTML5 SDK v3: loading and gameplay signals, midgame and rewarded ads, cloud saves.
    Everything no-ops outside CrazyGames, so GitHub Pages and local play work as before.
-   The SDK is only fetched on a crazygames.com page, or with ?cg in the URL for local testing. */
+   The SDK is only fetched on a crazygames.com page, or with ?cg in the URL for local testing.
+   The game reaches it through platform.js, which picks this or the GameDistribution module. */
 
 const SDK_URL = 'https://sdk.crazygames.com/crazygames-sdk-v3.js';
 
@@ -29,8 +30,16 @@ function loadScript() {
 }
 
 export const CG = {
+  name: 'cg',
+  titleFirst: false,
   get active() {
     return !!sdk;
+  },
+  get adBusy() {
+    return adBusy;
+  },
+  get canReward() {
+    return !!sdk && !adBusy;
   },
   // resolves once the SDK is ready (or straight away when we are not on CrazyGames)
   async init() {
@@ -106,6 +115,10 @@ export const CG = {
         end(false);
       }
     });
+  },
+  // CrazyGames has no preroll: the game starts at once
+  preroll() {
+    return Promise.resolve(false);
   },
   midgame() {
     return this.ad('midgame');

@@ -1,6 +1,6 @@
 /* Progress that outlives an operation: crystals, achievements, daily special tasks, skins and specialists bought in the shop.
    Kept in CrazyGames data or localStorage like the settings; the game reports what happened through ev() and achieve(). */
-import {CG} from './crazygames.js';
+import {PF} from './platform.js';
 
 const KEY = 'kg-profile-v1';
 
@@ -90,7 +90,7 @@ export function today(off) {
 function load() {
   let p = null;
   try {
-    p = JSON.parse(CG.getItem(KEY) || 'null');
+    p = JSON.parse(PF.getItem(KEY) || 'null');
   } catch (e) {}
   if (!p || typeof p !== 'object') p = {};
   p.cr = p.cr | 0;
@@ -101,10 +101,10 @@ function load() {
   if (!SKINS.some(s => s.id === p.skin)) p.skin = 'base';
   p.reserve = p.reserve || {};
   // for testing outside CrazyGames: ?cr=500 in the address sets the crystal balance
-  const t = !CG.active && /[?&]cr=(\d+)/.exec(location.search);
+  const t = !PF.active && /[?&]cr=(\d+)/.exec(location.search);
   if (t) {
     p.cr = +t[1];
-    CG.setItem(KEY, JSON.stringify(p));
+    PF.setItem(KEY, JSON.stringify(p));
   }
   return p;
 }
@@ -126,7 +126,7 @@ function changed() {
   }, 800);
 }
 export function saveProfile() {
-  CG.setItem(KEY, JSON.stringify(PROF));
+  PF.setItem(KEY, JSON.stringify(PROF));
 }
 
 // today's three tasks, drawn by the date so everyone gets a fresh set after midnight

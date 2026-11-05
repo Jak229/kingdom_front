@@ -6,7 +6,7 @@ import {S} from '../state.js';
 import {$} from './dom.js';
 import {layoutTut} from './tutorial.js';
 import {inGame, openMenu} from './menu.js';
-import {CG} from '../crazygames.js';
+import {PF} from '../platform.js';
 
 /* touch screens: a drive pad you can slide across, throttle (or double-tap an arrow), hold-to-pay, compact corner buttons */
 export const touch = {left: false, right: false, pay: false, fast: false, dash: false};
@@ -210,7 +210,7 @@ export function initTouch() {
         layoutTut();
       }, ms);
   });
-  $('fsbtn').hidden = !fsOK || CG.active;
+  $('fsbtn').hidden = !fsOK || PF.active;
   $('fsbtn').addEventListener('click', e => {
     e.currentTarget.blur();
     fsOn() ? leaveFull() : goFull();
@@ -222,7 +222,7 @@ export function initTouch() {
       if (TOUCH && !EMBED) goFull();
     });
   window.addEventListener('keydown', e => {
-    if (e.code === 'KeyF' && !e.repeat && !e.ctrlKey && !e.metaKey && !CG.active) {
+    if (e.code === 'KeyF' && !e.repeat && !e.ctrlKey && !e.metaKey && !PF.active) {
       fsOn() ? leaveFull() : goFull();
     }
   });

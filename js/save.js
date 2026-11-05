@@ -1,7 +1,7 @@
 /* Save at dawn, like the original, and load it back (CrazyGames cloud data or localStorage). */
 import {mkPerson, newState} from './state.js';
 import {newDaily} from './logic/daily.js';
-import {CG} from './crazygames.js';
+import {PF} from './platform.js';
 
 /* ---------- save at dawn, like the original ---------- */
 const SAVE_KEY = 'kg-front-save-v1',
@@ -9,7 +9,7 @@ const SAVE_KEY = 'kg-front-save-v1',
   DAILY_KEY = 'kg-daily-save-v1';
 export function saveGame(st) {
   const S = st || window.__kg.S;
-  return CG.setItem(
+  return PF.setItem(
     S.daily ? DAILY_KEY : SAVE_KEY,
     JSON.stringify({
       v: 1,
@@ -44,7 +44,7 @@ export function saveGame(st) {
 // daily: the saved operation of the day d (one from another day is of no use)
 export function readSave(daily, d) {
   try {
-    const s = JSON.parse(CG.getItem(daily ? DAILY_KEY : SAVE_KEY) || 'null');
+    const s = JSON.parse(PF.getItem(daily ? DAILY_KEY : SAVE_KEY) || 'null');
     if (!s || s.v !== 1) return null;
     return !daily || (s.daily && s.daily.d === d) ? s : null;
   } catch (e) {
@@ -52,7 +52,7 @@ export function readSave(daily, d) {
   }
 }
 export function clearSave(daily) {
-  CG.removeItem(daily ? DAILY_KEY : SAVE_KEY);
+  PF.removeItem(daily ? DAILY_KEY : SAVE_KEY);
 }
 export function loadGame(sv) {
   const n = sv.daily ? newDaily(sv.daily.d) : newState(sv.front || 1);

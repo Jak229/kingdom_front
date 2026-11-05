@@ -1,5 +1,10 @@
 /* Builds the portal version of the game: export/dist/ (open index.html from any static host)
-   and export/front-line-v<VERSION>.zip with index.html at the root of the archive.
+   and a zip with index.html at the root of the archive. One build per portal SDK:
+     node build.mjs                    CrazyGames        -> front-line-v<VERSION>.zip
+     node build.mjs --platform=gd      GameDistribution  -> front-line-v<VERSION>-gd.zip
+                    [--gd-id=<id>]     (game id from the GameDistribution dashboard; without it the
+                                        game reads the id from the address GameDistribution serves it at)
+     node build.mjs --platform=itch    no SDK, no ads (itch.io and any other site) -> front-line-v<VERSION>-itch.zip
    The ES modules become one minified classic script, so the game also runs inside portal iframes
    and needs no network: Phaser, fonts and sprites are all local files. */
 import {build} from 'esbuild';
@@ -11,6 +16,11 @@ import {fileURLToPath} from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   root = path.resolve(here, '..'),
   dist = path.join(here, 'dist');
+const arg = n => (process.argv.find(a => a.startsWith('--' + n + '=')) || '').split('=')[1] || '';
+const PLATFORM = arg('platform') || 'cg',
+  GD_ID = arg('gd-id');
+if (!['cg', 'gd', 'itch'].includes(PLATFORM)) throw new Error('--platform must be cg, gd or itch');
+if (GD_ID && !/^[0-9a-f]{32}$/i.test(GD_ID)) throw new Error('--gd-id must be the 32-character game id');
 const VERSION = /VERSION = (\d+)/.exec(fs.readFileSync(path.join(root, 'js/config.js'), 'utf8'))[1];
 
 fs.rmSync(dist, {recursive: true, force: true});
@@ -24,6 +34,11 @@ await build({
   target: 'es2019',
   legalComments: 'none',
   outfile: path.join(dist, 'js/game.js'),
+  // platform.js keeps only the SDK of this portal
+  define: {
+    __PLATFORM__: JSON.stringify(PLATFORM === 'itch' ? 'none' : PLATFORM),
+    __GD_ID__: JSON.stringify(PLATFORM === 'gd' ? GD_ID : '')
+  },
   logLevel: 'warning'
 });
 
@@ -47,8 +62,9 @@ const files = {};
     else files[path.relative(dist, p).split(path.sep).join('/')] = fs.readFileSync(p);
   }
 })(dist);
-const zipPath = path.join(here, `front-line-v${VERSION}.zip`);
+const zipPath = path.join(here, `front-line-v${VERSION}${PLATFORM === 'cg' ? '' : '-' + PLATFORM}.zip`);
 fs.writeFileSync(zipPath, zipSync(files, {level: 9}));
 const kb = n => (n / 1024).toFixed(0) + ' KB';
+console.log(`platform: ${PLATFORM}${GD_ID ? ' (game id ' + GD_ID + ')' : ''}`);
 console.log(`dist/: ${Object.keys(files).length} files, ${kb(Object.values(files).reduce((a, b) => a + b.length, 0))}`);
 console.log(`${path.relative(root, zipPath)}: ${kb(fs.statSync(zipPath).size)}`);
